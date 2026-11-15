@@ -398,7 +398,6 @@ def get_admin_panel_keyboard(user_id):
         types.InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_broadcast_start"),
         types.InlineKeyboardButton("👥 Management (Users & Balance)", callback_data="admin_management"),
         types.InlineKeyboardButton("➕ Add New Country", callback_data="admin_add_country"),
-        types.InlineKeyboardButton("📦 Price", callback_data="admin_add_accounts"),
         types.InlineKeyboardButton("🗂️ Add Zip File Stock", callback_data="admin_add_zip_menu"),
         types.InlineKeyboardButton("✏️ Edit / Delete Countries", callback_data="admin_edit_delete_countries_menu"),
         types.InlineKeyboardButton("📞 Change Support Username", callback_data="admin_change_support"),
@@ -683,6 +682,21 @@ def handle_all_messages(message):
         user_states.pop(user_id, None)
         return
 
+    if user_states.get(user_id, "").startswith("waiting_for_edit_price_"):
+        country_name = user_states.get(user_id).replace("waiting_for_edit_price_", "")
+        try:
+            new_price = float(message.text.strip())
+            if country_name in product_inventory["Countries"]["items"]:
+                product_inventory["Countries"]["items"][country_name]["price"] = new_price
+                save_inventory()
+                bot.send_message(message.chat.id, f"✅ Price for **{country_name}** successfully updated to **${new_price:.2f}**!", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
+            else:
+                bot.send_message(message.chat.id, "❌ Country not found.")
+        except ValueError:
+            bot.send_message(message.chat.id, "❌ Invalid price! সঠিক সংখ্যা দিন (যেমন: `1.50` বা `2`)।")
+        user_states.pop(user_id, None)
+        return
+
     if user_states.get(user_id, "").startswith("waiting_for_rename_country_"):
         old_country = user_states.get(user_id).replace("waiting_for_rename_country_", "")
         new_country = message.text.strip().capitalize()
@@ -696,29 +710,6 @@ def handle_all_messages(message):
         else:
             bot.send_message(message.chat.id, "❌ Country not found.")
         user_states.pop(user_id, None)
-        return
-
-    if user_states.get(user_id) == "waiting_for_accounts_input":
-        target_country = temp_admin_data.get(user_id)
-        lines = message.text.split("\n")
-        try:
-            price_val = float(lines[0].replace("Price:", "").strip())
-            added_count = 0
-            target_dict = product_inventory["Countries"]["items"][target_country]
-            target_dict["price"] = price_val
-            if "accounts" not in target_dict:
-                target_dict["accounts"] = []
-            for line in lines[1:]:
-                if line.strip():
-                    acc_info = line.strip()
-                    target_dict["accounts"].append({"number": acc_info, "2fa": "Included in Details"})
-                    added_count += 1
-            save_inventory()
-            bot.send_message(message.chat.id, f"✅ Successfully updated **{target_country}**!\n💰 Price: ${price_val:.2f}\n📦 Added Items: {added_count}", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
-        except Exception:
-            bot.send_message(message.chat.id, "❌ Format error! First line must be price (e.g., `2.50`) and following lines should be account details.")
-        user_states.pop(user_id, None)
-        temp_admin_data.pop(user_id, None)
         return
 
     if user_states.get(user_id) == "waiting_for_broadcast_message":
@@ -1252,35 +1243,6 @@ def handle_inline_clicks(call):
             pass
         return
 
-    elif call.data == "admin_add_accounts":
-        if not is_admin(user_id):
-            return
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
-            for c_name in product_inventory["Countries"]["items"].keys():
-                markup.add(types.InlineKeyboardButton(f"🌐 Country: {c_name}", callback_data=f"select_country_for_acc_{c_name}"))
-        markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
-        bot.answer_callback_query(call.id, "Price Menu")
-        try:
-            bot.edit_message_text("Select country to update price & stock:", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
-        except Exception:
-            pass
-        return
-
-    elif call.data.startswith("select_country_for_acc_"):
-        if not is_admin(user_id):
-            return
-        target_country = call.data.replace("select_country_for_acc_", "")
-        temp_admin_data[user_id] = target_country
-        user_states[user_id] = "waiting_for_accounts_input"
-        bot.answer_callback_query(call.id, target_country)
-        format_instruction = f"📦 Updating price/stock for **{target_country}**\n\nSend message in this format:\nLine 1: Price (e.g., `1.50`)\nLine 2+: Account details / Phone numbers"
-        try:
-            bot.edit_message_text(format_instruction, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
-        except Exception:
-            pass
-        return
-
     elif call.data == "admin_edit_delete_countries_menu":
         if not is_admin(user_id):
             return
@@ -1289,13 +1251,27 @@ def handle_inline_clicks(call):
         if proto_items:
             for c_name in proto_items.keys():
                 markup.add(
+                    types.InlineKeyboardButton(f"💵 Edit Price: {c_name}", callback_data=f"admin_edit_price_{c_name}"),
                     types.InlineKeyboardButton(f"✏️ Rename: {c_name}", callback_data=f"admin_rename_country_{c_name}"),
                     types.InlineKeyboardButton(f"❌ Delete: {c_name}", callback_data=f"admin_delete_country_{c_name}")
                 )
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
-        bot.answer_callback_query(call.id, "Countries Edit/Delete")
+        bot.answer_callback_query(call.id, "Countries Edit Menu")
         try:
-            bot.edit_message_text("🌐 **Manage Countries:**\nSelect a country to Rename or Delete:", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
+            bot.edit_message_text("🌐 **Manage Countries:**\nSelect an option for a country below:", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
+        except Exception:
+            pass
+        return
+
+    elif call.data.startswith("admin_edit_price_"):
+        if not is_admin(user_id):
+            return
+        country_name = call.data.replace("admin_edit_price_", "")
+        user_states[user_id] = f"waiting_for_edit_price_{country_name}"
+        current_price = product_inventory["Countries"]["items"].get(country_name, {}).get("price", 1.00)
+        bot.answer_callback_query(call.id, f"Edit Price {country_name}")
+        try:
+            bot.edit_message_text(f"💵 **Edit Price for {country_name}**\n\nCurrent Price: `${current_price:.2f}`\n\nনতুন প্রাইজ লিখে পাঠান (যেমন: `1.50` বা `2`):", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
         except Exception:
             pass
         return
@@ -1324,6 +1300,7 @@ def handle_inline_clicks(call):
             markup = types.InlineKeyboardMarkup(row_width=1)
             for c in proto_items.keys():
                 markup.add(
+                    types.InlineKeyboardButton(f"💵 Edit Price: {c}", callback_data=f"admin_edit_price_{c}"),
                     types.InlineKeyboardButton(f"✏️ Rename: {c}", callback_data=f"admin_rename_country_{c}"),
                     types.InlineKeyboardButton(f"❌ Delete: {c}", callback_data=f"admin_delete_country_{c}")
                 )
