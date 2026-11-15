@@ -11,26 +11,26 @@ import requests
 from threading import Thread
 from flask import Flask
 
-# টোকেন সেটআপ
+# Token Setup
 TOKEN = "8908618066:AAFdUFbISehMUXGeCXf2SjwS5PNPLFlqFPU"
 bot = telebot.TeleBot(TOKEN)
 
-# ফায়ারবেস ডাটাবেস URL
+# Firebase Database URL
 FIREBASE_URL = "https://telegram-bot-nerupom-default-rtdb.firebaseio.com"
 
-# সাপোর্ট ইউজারনেম
+# Support Username
 support_admin_username = "@proxyvpnservice17"
 
-# অ্যাডমিন আইডি লিস্ট
+# Admin ID List
 ADMIN_IDS = [8138758919]
 
-# ইন-মেমোরি ডাটাবেস ও স্টেট ম্যানেজমেন্ট
+# In-memory Database & State Management
 user_amounts = {}
 user_states = {}
 user_balances = {}
 user_purchases = {}
 user_deposits = {}
-pending_deposits = {}  # পেন্ডিং ডিপোজিট ট্র্যাকিংয়ের জন্য
+pending_deposits = {}
 used_txids = set()
 user_languages = {}
 all_users = set()
@@ -74,31 +74,24 @@ def fb_put(path, data):
 def load_data_from_firebase():
     global user_balances, user_purchases, user_deposits, user_languages, all_users, product_inventory, support_admin_username
     
-    # Load Balances
     b = fb_get("user_balances")
     if b: user_balances = {int(k): float(v) for k, v in b.items()}
     
-    # Load Purchases
     p = fb_get("user_purchases")
     if p: user_purchases = {int(k): v for k, v in p.items()}
     
-    # Load Deposits
     d = fb_get("user_deposits")
     if d: user_deposits = {int(k): v for k, v in d.items()}
     
-    # Load Languages
     l = fb_get("user_languages")
     if l: user_languages = {int(k): v for k, v in l.items()}
     
-    # Load All Users
     u = fb_get("all_users")
     if u: all_users = set(int(k) for k in u)
     
-    # Load Inventory
     inv = fb_get("product_inventory")
     if inv: product_inventory = inv
     
-    # Load Support Username
     sup = fb_get("support_admin_username")
     if sup: support_admin_username = sup
 
@@ -120,7 +113,7 @@ def save_support():
 def is_admin(user_id):
     return int(user_id) in ADMIN_IDS
 
-# কান্ট্রি ডাটাবেস
+# Country Database
 DEFAULT_DATABASE = {
     "support_admin": "@proxyvpnservice17",
     "product_inventory": {
@@ -469,7 +462,7 @@ def get_user_detail_text(target_uid):
         f"📦 Total Purchases: `{len(pur)}`\n"
         f"💰 Total Deposits: `{len(dep)}`\n"
         f"──────────────────────\n"
-        f"নিচ থেকে Balance Edit করুন:"
+        f"Select an option to edit balance:"
     )
     return text
 
@@ -564,7 +557,7 @@ def handle_all_messages(message):
             f"💵 Amount: `${dep_amt:.2f}`\n"
             f"Trx: `{trx_info}`\n"
             f"──────────────────────\n"
-            f"নিচের বাটনে ক্লিক করে Accept বা Reject করুন:"
+            f"Click buttons below to Accept or Reject:"
         )
         try:
             bot.copy_message(chat_id=admin_id, from_chat_id=message.chat.id, message_id=message.message_id)
@@ -572,7 +565,7 @@ def handle_all_messages(message):
         except Exception as e:
             print(f"Failed to send proof to admin: {e}")
 
-        success_msg = "📤 আপনার পেমেন্ট প্রুফ / TxID সফলভাবে অ্যাডমিনের কাছে পাঠানো হয়েছে। দয়া করে ভেরিফিকেশনের জন্য অপেক্ষা করুন。" if lang_code == "zh" or lang_code == "en" else "📤 Your payment proof / TxID has been sent successfully. Please wait for admin verification."
+        success_msg = "📤 Your payment proof / TxID has been sent successfully. Please wait for admin verification."
         bot.send_message(message.chat.id, success_msg, parse_mode="Markdown", reply_markup=get_main_menu_keyboard(user_id))
         return
 
@@ -597,7 +590,7 @@ def handle_all_messages(message):
         try:
             target = int(message.text.strip())
         except:
-            bot.send_message(message.chat.id, "❌ Invalid User ID! শুধু সংখ্যা দিন, যেমন: `123456789`", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
+            bot.send_message(message.chat.id, "❌ Invalid User ID! Please enter numbers only (e.g., `123456789`):", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
             return
         if target not in all_users:
             all_users.add(target)
@@ -615,7 +608,7 @@ def handle_all_messages(message):
         try:
             amount = float(message.text.strip())
         except:
-            bot.send_message(message.chat.id, "❌ Invalid amount! যেমন: `10` বা `5.50` দিন")
+            bot.send_message(message.chat.id, "❌ Invalid amount! Please enter a valid number (e.g., `10` or `5.50`):")
             return
         old_bal = user_balances.get(target_uid, 0.0)
         if action == "add":
@@ -695,7 +688,7 @@ def handle_all_messages(message):
             else:
                 bot.send_message(message.chat.id, "❌ Country not found.")
         except ValueError:
-            bot.send_message(message.chat.id, "❌ Invalid price! সঠিক সংখ্যা দিন (যেমন: `1.50` বা `2`)।")
+            bot.send_message(message.chat.id, "❌ Invalid price! Please enter a valid number (e.g., `1.50` or `2`):")
         user_states.pop(user_id, None)
         return
 
@@ -916,7 +909,7 @@ def handle_inline_clicks(call):
         bot.answer_callback_query(call.id, "Change Support Username")
         try:
             bot.edit_message_text(
-                "📞 **Change Support Username**\n\nনতুন সাপোর্ট ইউজারনেম পাঠান (যেমন: `@YourUsername`):",
+                "📞 **Change Support Username**\n\nPlease send new support username (e.g., `@YourUsername`):",
                 call.message.chat.id, 
                 call.message.message_id, 
                 parse_mode="Markdown"
@@ -956,7 +949,7 @@ def handle_inline_clicks(call):
                     pass
                 
                 try:
-                    bot.send_message(target_uid, f"✅ **আপনার ডিপোজিট সফলভাবে গ্রহণ করা হয়েছে!**\n\n💰 আপনার অ্যাকাউন্টে **${amount:.2f}** যোগ করা হয়েছে।", parse_mode="Markdown")
+                    bot.send_message(target_uid, f"✅ **Your deposit has been accepted successfully!**\n\n💰 **${amount:.2f}** has been credited to your account.", parse_mode="Markdown")
                 except:
                     pass
             else:
@@ -966,7 +959,7 @@ def handle_inline_clicks(call):
                 except:
                     pass
                 try:
-                    bot.send_message(target_uid, f"❌ **দুঃখিত, আপনার ডিপোজিট রিকোয়েস্টটি অ্যাডমিন কর্তৃক বাতিল করা হয়েছে।**\nOrder ID: `{order_id}`", parse_mode="Markdown")
+                    bot.send_message(target_uid, f"❌ **Sorry, your deposit request has been rejected by admin.**\nOrder ID: `{order_id}`", parse_mode="Markdown")
                 except:
                     pass
         else:
@@ -979,9 +972,6 @@ def handle_inline_clicks(call):
         bot.answer_callback_query(call.id, "Send Order ID / TxID")
         
         prompt_text = (
-            "📤 **দয়া করে আপনার পেমেন্টের ট্রানজেকশন আইডি (TxID) অথবা স্ক্রিনশট পাঠান:**\n\n"
-            f"অর্ডার আইডি: `{order_id}`"
-        ) if lang_code == "zh" or lang_code == "en" else (
             "📤 **Please send your payment Transaction ID (TxID) or Proof:**\n\n"
             f"Order ID: `{order_id}`"
         )
@@ -1002,7 +992,7 @@ def handle_inline_clicks(call):
             f"──────────────────────\n"
             f"👥 Total Users: `{total_users}`\n"
             f"──────────────────────\n"
-            f"নিচ থেকে User List / Search করুন:"
+            f"Select option below:"
         )
         try:
             bot.edit_message_text(text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_management_keyboard(user_id))
@@ -1019,7 +1009,7 @@ def handle_inline_clicks(call):
             page = 0
         bot.answer_callback_query(call.id, f"Page {page+1}")
         markup, total_pages, total = get_users_list_keyboard(page)
-        text = f"👥 **All Users List**\n──────────────────────\nTotal Users: `{total}`\nকোনো User এ ক্লিক করে Balance Edit করুন:"
+        text = f"👥 **All Users List**\n──────────────────────\nTotal Users: `{total}`\nClick a user to edit balance:"
         try:
             bot.edit_message_text(text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
         except:
@@ -1032,7 +1022,7 @@ def handle_inline_clicks(call):
         user_states[user_id] = "waiting_for_mgmt_search"
         bot.answer_callback_query(call.id, "Search User")
         try:
-            bot.edit_message_text("🔍 **Search User**\n\nUser ID পাঠান (যেমন: `123456789`):", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+            bot.edit_message_text("🔍 **Search User**\n\nPlease send User ID (e.g., `123456789`):", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
         except:
             pass
         return
@@ -1075,7 +1065,7 @@ def handle_inline_clicks(call):
         bot.answer_callback_query(call.id, label)
         try:
             bot.edit_message_text(
-                f"{label}\n\n👤 User ID: `{target_uid}`\n💰 Current Balance: **${old_bal:.2f}**\n\n💵 Amount পাঠান (যেমন: `10`):",
+                f"{label}\n\n👤 User ID: `{target_uid}`\n💰 Current Balance: **${old_bal:.2f}**\n\nPlease send amount (e.g., `10`):",
                 call.message.chat.id, call.message.message_id, parse_mode="Markdown"
             )
         except:
@@ -1157,7 +1147,7 @@ def handle_inline_clicks(call):
         except Exception:
             pass
         try:
-            update_msg = "👇 菜单已更新：" if lang_code == "zh" else "👇 Menu updated:"
+            update_msg = "👇 Menu updated:"
             bot.send_message(call.message.chat.id, update_msg, reply_markup=get_main_menu_keyboard(user_id))
         except Exception:
             pass
@@ -1181,7 +1171,7 @@ def handle_inline_clicks(call):
         last_underscore = remainder.rfind("_")
         item_key = remainder[:last_underscore]
         qty = int(remainder[last_underscore + 1:])
-        bot.answer_callback_query(call.id, f"Selected {qty} qty" if lang_code == "en" else f"已选择 {qty} 个")
+        bot.answer_callback_query(call.id, f"Selected {qty} qty")
         try:
             bot.delete_message(call.message.chat.id, call.message.message_id)
         except Exception:
@@ -1198,16 +1188,13 @@ def handle_inline_clicks(call):
         zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in c_data.get("zip_files", []))
         stock_count = len(c_data.get("accounts", [])) + zip_stock_count
         markup = types.InlineKeyboardMarkup(row_width=1)
-        cart_sel_text = "🛒 选择数量" if lang_code == "zh" else "🛒 Select Quantity"
+        cart_sel_text = "🛒 Select Quantity"
         markup.add(
             types.InlineKeyboardButton(cart_sel_text, callback_data=f"buy_country_{country}"),
             types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
         )
         try:
-            if lang_code == "zh":
-                country_detail_text = f"🌐 **国家：** {country} ({c_code})\n\n💰 **价格：** `${price:.2f}`\n📦 **可用 {t['stock']}：** `{stock_count}` 个\n\n点击下方按钮继续选择数量："
-            else:
-                country_detail_text = f"🌐 **Country:** {country} ({c_code})\n\n💰 **Price:** `${price:.2f}`\n📦 **Available {t['stock']}:** `{stock_count}` items\n\nClick below to proceed to quantity selection:"
+            country_detail_text = f"🌐 **Country:** {country} ({c_code})\n\n💰 **Price:** `${price:.2f}`\n📦 **Available {t['stock']}:** `{stock_count}` items\n\nClick below to proceed to quantity selection:"
             bot.edit_message_text(country_detail_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
         except Exception:
             pass
@@ -1217,7 +1204,7 @@ def handle_inline_clicks(call):
         country = call.data.replace("buy_country_", "")
         bot.answer_callback_query(call.id, country)
         try:
-            proto_qty_text = f"🔢 **选择 {country} 的数量：**\n\n请选择您要购买的数量：" if lang_code == "zh" else f"🔢 **Select Quantity for {country}:**\n\nChoose how many items you want to buy:"
+            proto_qty_text = f"🔢 **Select Quantity for {country}:**\n\nChoose how many items you want to buy:"
             bot.edit_message_text(proto_qty_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_quantity_keyboard(country, user_id))
         except Exception:
             pass
@@ -1273,7 +1260,7 @@ def handle_inline_clicks(call):
         current_price = product_inventory["Countries"]["items"].get(country_name, {}).get("price", 1.00)
         bot.answer_callback_query(call.id, f"Edit Price {country_name}")
         try:
-            bot.edit_message_text(f"💵 **Edit Price for {country_name}**\n\nCurrent Price: `${current_price:.2f}`\n\nনতুন প্রাইজ লিখে পাঠান (যেমন: `1.50` বা `2`):", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
+            bot.edit_message_text(f"💵 **Edit Price for {country_name}**\n\nCurrent Price: `${current_price:.2f}`\n\nPlease send new price (e.g., `1.50` or `2`):", call.message.chat.id, call.message.message_id, parse_mode="Markdown")
         except Exception:
             pass
         return
@@ -1373,7 +1360,7 @@ def handle_inline_clicks(call):
                 selected_val = float(call.data.split("_")[1])
                 user_amounts[user_id] = selected_val
                 user_states[user_id] = "waiting_for_payment_method"
-                payment_text = f"💰 **Selected Amount:** ${selected_val:.2f}\n\nPlease select your preferred payment method:" if lang_code == "en" else f"💰 **已选金额：** ${selected_val:.2f}\n\n请选择您的首选付款方式："
+                payment_text = f"💰 **Selected Amount:** ${selected_val:.2f}\n\nPlease select your preferred payment method:"
                 bot.answer_callback_query(call.id, f"Selected ${selected_val:.2f}")
                 bot.edit_message_text(payment_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_payment_methods_keyboard(user_id))
             except Exception:
@@ -1395,36 +1382,21 @@ def handle_inline_clicks(call):
             user_deposits[user_id] = []
         user_deposits[user_id].append({"text": deposit_text, "timestamp": time.time()})
         save_user_data(user_id)
-        if lang_code == "zh":
-            binance_order_text = (
-                "[ 订单已创建 ]  币安 UID · USDT\n"
-                "──────────────────────\n"
-                f"  转账金额  ·  `{send_val_str}`\n"
-                f"  到账金额  ·  ${current_amount:.2f}\n"
-                f"  订单号    ·  `{order_id}`\n"
-                "  网络类型  ·  币安 UID\n"
-                f"  支付 ID   ·  `123456789`\n"
-                "  账户名    ·  onwerTGselling\n"
-                f"  过期时间  ·  {current_time}\n"
-                "──────────────────────\n"
-                f"请准确发送 `{send_val_str}`（含所有小数位数）。多出的小数位数仅用于识别您的付款，到账将为您入账 ${current_amount:.2f}。\n"
-                "管理员验证后将自动为您的账户充值。"
-            )
-        else:
-            binance_order_text = (
-                "[ ORDER CREATED ]  Binance UID · USDT\n"
-                "──────────────────────\n"
-                f"  Send     ·  `{send_val_str}`\n"
-                f"  Credit   ·  ${current_amount:.2f}\n"
-                f"  Order    ·  `{order_id}`\n"
-                "  Network  ·  Binance UID\n"
-                f"  Pay ID   ·  `123456789`\n"
-                "  Name     ·  onwerTGselling\n"
-                f"  Expires  ·  {current_time}\n"
-                "──────────────────────\n"
-                f"Send exactly `{send_val_str}`, including all decimals. The extra decimals only identify your payment; ${current_amount:.2f} is credited.\n"
-                "Your balance will be credited by admin once verified."
-            )
+        
+        binance_order_text = (
+            "[ ORDER CREATED ]  Binance UID · USDT\n"
+            "──────────────────────\n"
+            f"  Send     ·  `{send_val_str}`\n"
+            f"  Credit   ·  ${current_amount:.2f}\n"
+            f"  Order    ·  `{order_id}`\n"
+            "  Network  ·  Binance UID\n"
+            f"  Pay ID   ·  `123456789`\n"
+            "  Name     ·  onwerTGselling\n"
+            f"  Expires  ·  {current_time}\n"
+            "──────────────────────\n"
+            f"Send exactly `{send_val_str}`, including all decimals. The extra decimals only identify your payment; ${current_amount:.2f} is credited.\n"
+            "Your balance will be credited by admin once verified."
+        )
         bot.answer_callback_query(call.id, "Selected Binance UID")
         try:
             bot.edit_message_text(binance_order_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_order_created_keyboard("binance", order_id, user_id))
@@ -1435,7 +1407,7 @@ def handle_inline_clicks(call):
     elif call.data == "pay_tron_menu":
         bot.answer_callback_query(call.id, "Tron Network selected")
         try:
-            tron_menu_text = f"💎 **波场网络 (Tron)** (最低充值: $3)\n\n已选金额: ${user_amounts.get(user_id, 3.00):.2f}\n\n请选择代币类型：" if lang_code == "zh" else f"💎 **Tron Network** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
+            tron_menu_text = f"💎 **Tron Network** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
             bot.edit_message_text(tron_menu_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_tron_subfolders_keyboard(user_id))
         except Exception:
             pass
@@ -1444,7 +1416,7 @@ def handle_inline_clicks(call):
     elif call.data == "pay_bsc_menu":
         bot.answer_callback_query(call.id, "Bsc Network selected")
         try:
-            bsc_menu_text = f"🪙 **币安智能链 (BEP20)** (最低充值: $3)\n\n已选金额: ${user_amounts.get(user_id, 3.00):.2f}\n\n请选择代币类型：" if lang_code == "zh" else f"🪙 **Bsc Network (BEP20)** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
+            bsc_menu_text = f"🪙 **Bsc Network (BEP20)** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
             bot.edit_message_text(bsc_menu_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_bsc_subfolders_keyboard(user_id))
         except Exception:
             pass
@@ -1495,36 +1467,21 @@ def handle_inline_clicks(call):
             user_deposits[user_id] = []
         user_deposits[user_id].append({"text": deposit_text, "timestamp": time.time()})
         save_user_data(user_id)
-        if lang_code == "zh":
-            order_text = (
-                "[ 订单已创建 ]  " + currency_type + "\n"
-                "──────────────────────\n"
-                f"  转账金额  ·  `{send_val}`\n"
-                f"  到账金额  ·  {credit_val}\n"
-                f"  订单号    ·  `{order_id}`\n"
-                f"  网络类型  ·  {network_name}\n"
-                f"  钱包地址  ·  `{wallet_address}`\n"
-                f"  过期时间  ·  {current_time}\n"
-                "──────────────────────\n"
-                f"请准确发送 `{send_val}`（含所有小数位数）。此金额根据下单时的币安价格转换，末尾带有唯一识别码，到账后将为您入账 ${current_amount:.2f}。\n"
-                f"请务必通过 {network_name} 网络发送原生资产/代币。\n"
-                "管理员验证后将自动为您的账户充值。"
-            )
-        else:
-            order_text = (
-                "[ ORDER CREATED ]  " + currency_type + "\n"
-                "──────────────────────\n"
-                f"  Send     ·  `{send_val}`\n"
-                f"  Credit   ·  {credit_val}\n"
-                f"  Order    ·  `{order_id}`\n"
-                f"  Network  ·  {network_name}\n"
-                f"  Address  ·  `{wallet_address}`\n"
-                f"  Expires  ·  {current_time}\n"
-                "──────────────────────\n"
-                f"Send exactly `{send_val}`, including all decimals. This amount was converted from ${current_amount:.2f} at the Binance price when the order was created and ends in a unique identifier; ${current_amount:.2f} is credited when it arrives.\n"
-                f"Send native assets/tokens on the {network_name} network only.\n"
-                "Your balance will be credited by admin once verified."
-            )
+        
+        order_text = (
+            "[ ORDER CREATED ]  " + currency_type + "\n"
+            "──────────────────────\n"
+            f"  Send     ·  `{send_val}`\n"
+            f"  Credit   ·  {credit_val}\n"
+            f"  Order    ·  `{order_id}`\n"
+            f"  Network  ·  {network_name}\n"
+            f"  Address  ·  `{wallet_address}`\n"
+            f"  Expires  ·  {current_time}\n"
+            "──────────────────────\n"
+            f"Send exactly `{send_val}`, including all decimals. This amount was converted from ${current_amount:.2f} at the Binance price when the order was created and ends in a unique identifier; ${current_amount:.2f} is credited when it arrives.\n"
+            f"Send native assets/tokens on the {network_name} network only.\n"
+            "Your balance will be credited by admin once verified."
+        )
         bot.answer_callback_query(call.id, "Order Generated!")
         try:
             bot.edit_message_text(order_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
