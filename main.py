@@ -553,6 +553,8 @@ def handle_all_messages(message):
             types.InlineKeyboardButton("❌ Reject", callback_data=f"dep_reject_{dep_id}")
         )
 
+        trx_info = message.text if message.text else "Screenshot / Media"
+
         admin_notification = (
             f"💰 **New Deposit Request!**\n"
             f"──────────────────────\n"
@@ -560,13 +562,13 @@ def handle_all_messages(message):
             f"🆔 User ID: `{user_id}`\n"
             f"📦 Order ID: `{order_id}`\n"
             f"💵 Amount: `${dep_amt:.2f}`\n"
+            f"Trx: `{trx_info}`\n"
             f"──────────────────────\n"
             f"নিচের বাটনে ক্লিক করে Accept বা Reject করুন:"
         )
         try:
-            bot.send_message(admin_id, admin_notification, parse_mode="Markdown")
-            bot.forward_message(admin_id, message.chat.id, message.message_id)
-            bot.send_message(admin_id, f"👇 Action for Order `{order_id}`:", reply_markup=admin_markup)
+            bot.copy_message(chat_id=admin_id, from_chat_id=message.chat.id, message_id=message.message_id)
+            bot.send_message(admin_id, admin_notification, parse_mode="Markdown", reply_markup=admin_markup)
         except Exception as e:
             print(f"Failed to send proof to admin: {e}")
 
