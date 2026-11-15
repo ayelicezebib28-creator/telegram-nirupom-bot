@@ -398,7 +398,7 @@ def get_admin_panel_keyboard(user_id):
         types.InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_broadcast_start"),
         types.InlineKeyboardButton("👥 Management (Users & Balance)", callback_data="admin_management"),
         types.InlineKeyboardButton("➕ Add New Country", callback_data="admin_add_country"),
-        types.InlineKeyboardButton("📦 Add Stock & Price", callback_data="admin_add_accounts"),
+        types.InlineKeyboardButton("📦 Price", callback_data="admin_add_accounts"),
         types.InlineKeyboardButton("🗂️ Add Zip File Stock", callback_data="admin_add_zip_menu"),
         types.InlineKeyboardButton("✏️ Edit / Delete Countries", callback_data="admin_edit_delete_countries_menu"),
         types.InlineKeyboardButton("📞 Change Support Username", callback_data="admin_change_support"),
@@ -916,6 +916,22 @@ def handle_inline_clicks(call):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
 
+    if call.data == "admin_change_support":
+        if not is_admin(user_id):
+            return
+        user_states[user_id] = "waiting_for_new_support_username"
+        bot.answer_callback_query(call.id, "Change Support Username")
+        try:
+            bot.edit_message_text(
+                "📞 **Change Support Username**\n\nনতুন সাপোর্ট ইউজারনেম পাঠান (যেমন: `@YourUsername`):",
+                call.message.chat.id, 
+                call.message.message_id, 
+                parse_mode="Markdown"
+            )
+        except Exception:
+            pass
+        return
+
     if call.data.startswith("dep_accept_") or call.data.startswith("dep_reject_"):
         if not is_admin(user_id):
             bot.answer_callback_query(call.id, "Unauthorized", show_alert=True)
@@ -1244,9 +1260,9 @@ def handle_inline_clicks(call):
             for c_name in product_inventory["Countries"]["items"].keys():
                 markup.add(types.InlineKeyboardButton(f"🌐 Country: {c_name}", callback_data=f"select_country_for_acc_{c_name}"))
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
-        bot.answer_callback_query(call.id, "Add Stock Menu")
+        bot.answer_callback_query(call.id, "Price Menu")
         try:
-            bot.edit_message_text("Select country to add stock & price:", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
+            bot.edit_message_text("Select country to update price & stock:", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
         except Exception:
             pass
         return
@@ -1258,7 +1274,7 @@ def handle_inline_clicks(call):
         temp_admin_data[user_id] = target_country
         user_states[user_id] = "waiting_for_accounts_input"
         bot.answer_callback_query(call.id, target_country)
-        format_instruction = f"📦 Adding stock/price for **{target_country}**\n\nSend message in this format:\nLine 1: Price (e.g., `1.50`)\nLine 2+: Account details / Phone numbers"
+        format_instruction = f"📦 Updating price/stock for **{target_country}**\n\nSend message in this format:\nLine 1: Price (e.g., `1.50`)\nLine 2+: Account details / Phone numbers"
         try:
             bot.edit_message_text(format_instruction, call.message.chat.id, call.message.message_id, parse_mode="Markdown")
         except Exception:
