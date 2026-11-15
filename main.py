@@ -1,4 +1,4 @@
-import telebot
+Import telebot
 from telebot import types
 import pyzipper
 from datetime import datetime, timezone, timedelta
@@ -154,17 +154,23 @@ def background_cleanup_job():
 LANG = {
     "en": {
         "welcome": "Welcome, {user_name}.\n\n────────────────────────\n◆ **OUR BUSINESS** ◆\nAll kinds of daily needs, digital and physical products — wholesale / retail!\n\n‣ **First time buying from us?** Please purchase a small test batch before ordering in bulk, to avoid unnecessary disputes. Thank you for your cooperation!\n\n‣ **Disclaimer:** All products are verified for quality and testing purposes only, not for any illegal activity. Please comply with your local laws and regulations.\n────────────────────────\n‣ Use the menu below to get started.",
+        "dashboard": "📊 **Dashboard & Price List**\n\nHere is the current inventory and price list of all products:",
         "products": "📁 **Select a product category:**",
         "account": "◆ **ACCOUNT**\n────────────────────────\nUser ID  ·  `{user_id}`\nUsername  ·  {username}\nBalance  ·  ${balance:.2f}\nPurchased  ·  {purchased_total}",
         "deposit": "Select amount (USDT):",
+        "history": "目 **HISTORY MENU**\n──────────────────────\nPlease select which history you want to view:",
         "support": "📞 **Support Center**\n\nFor any help, issues or assistance, please contact our support admin:\n👉 {support_user}",
+        "search": "🔍 **Search Products**\n\nEnter product name, country, or phone code (e.g., USA, Bangladesh, +880):",
         "language": "🌐 **Language Settings / 语言设置**\n\nPlease select your preferred language:",
         "admin": "🛠️ **Welcome to Admin Panel**\n\nChoose an option below:",
+        "menu_dashboard": "📊 Dashboard",
         "menu_products": "◆ Products",
         "menu_account": "◆ My Account",
         "menu_deposit": "▲ Deposit",
+        "menu_history": "目 History",
         "menu_support": "Support",
         "menu_lang": "🌐 Language",
+        "menu_search": "🔍 Search",
         "menu_admin": "🛠️ Admin Panel",
         "select_qty": "🔢 **Select Quantity:**\n\nChoose how many items you want to buy:",
         "select_country": "🌍 **Select a country & phone code:**",
@@ -191,17 +197,23 @@ LANG = {
     },
     "zh": {
         "welcome": "欢迎, {user_name}。\n\n────────────────────────\n◆ **我们的业务** ◆\n各种日常需求、数字和实体产品——批发/零售！\n\n‣ **第一次在我们这里购买？** 批量订购前请购买小额测试批次，以免产生不必要的纠纷。感谢您的合作！\n\n‣ **免责声明：** 所有产品均经过质量和测试目的验证，不得用于任何非法活动。请遵守您当地的法律法规。\n────────────────────────\n‣ 使用下方的菜单开始。",
+        "dashboard": "📊 **仪表盘与价格表**\n\n以下是所有产品的当前库存和价格表：",
         "products": "📁 **选择产品类别：**",
         "account": "◆ **账户信息**\n────────────────────────\n用户 ID  ·  `{user_id}`\n用户名  ·  {username}\n余额  ·  ${balance:.2f}\n已购总额  ·  {purchased_total}",
         "deposit": "请选择充值金额 (USDT)：",
+        "history": "目 **历史记录菜单**\n──────────────────────\n请选择您要查看的历史记录类型：",
         "support": "📞 **支持中心**\n\n如有任何帮助、问题或协助，请直接联系我们的支持管理员：\n👉 {support_user}",
+        "search": "🔍 **搜索产品**\n\n输入产品名称、国家或电话区号（例如：USA, Bangladesh, +880）：",
         "language": "🌐 **语言设置 / Language Settings**\n\n请选择您的首选语言：",
         "admin": "🛠️ **欢迎来到管理面板**\n\n在下方选择一个选项：",
+        "menu_dashboard": "📊 仪表盘",
         "menu_products": "◆ 产品中心",
         "menu_account": "◆ 我的账户",
         "menu_deposit": "▲ 充值",
+        "menu_history": "目 历史记录",
         "menu_support": "客服支持",
         "menu_lang": "🌐 语言设置",
+        "menu_search": "🔍 搜索产品",
         "menu_admin": "🛠️ 管理面板",
         "select_qty": "🔢 **选择数量：**\n\n请选择您要购买的数量：",
         "select_country": "🌍 **选择国家及电话区号：**",
@@ -240,11 +252,14 @@ def get_main_menu_keyboard(user_id):
     t = LANG[lang_code]
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
+        types.KeyboardButton(t["menu_dashboard"]),
         types.KeyboardButton(t["menu_products"]),
         types.KeyboardButton(t["menu_account"]),
         types.KeyboardButton(t["menu_deposit"]),
+        types.KeyboardButton(t["menu_history"]),
         types.KeyboardButton(t["menu_support"]),
-        types.KeyboardButton(t["menu_lang"])
+        types.KeyboardButton(t["menu_lang"]),
+        types.KeyboardButton(t["menu_search"])
     )
     if is_admin(user_id):
         markup.add(types.KeyboardButton(t["menu_admin"]))
@@ -324,6 +339,19 @@ def get_quantity_keyboard(item_key, user_id):
         types.InlineKeyboardButton("10", callback_data=f"qty_{item_key}_10"),
         types.InlineKeyboardButton(other_qty_text, callback_data=f"qty_other_{item_key}"),
         types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
+    )
+    return markup
+
+def get_history_menu_keyboard(user_id):
+    t = LANG[get_lang(user_id)]
+    lang_code = get_lang(user_id)
+    pur_hist_text = "📦 购买历史记录" if lang_code == "zh" else "📦 Purchase History"
+    dep_hist_text = "💰 充值历史记录" if lang_code == "zh" else "💰 Deposit History"
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        types.InlineKeyboardButton(pur_hist_text, callback_data="hist_purchase"),
+        types.InlineKeyboardButton(dep_hist_text, callback_data="hist_deposit"),
+        types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu")
     )
     return markup
 
@@ -740,6 +768,38 @@ def handle_all_messages(message):
             bot.send_message(message.chat.id, f"✅ **Broadcast Completed!**\n\n👥 Successfully sent: `{success_count}` users\n❌ Failed (Blocked bot): `{fail_count}` users", parse_mode="Markdown", reply_markup=get_main_menu_keyboard(user_id))
         return
 
+    if user_states.get(user_id) == "waiting_for_search_query":
+        query = message.text.strip().lower() if message.text else ""
+        user_states.pop(user_id, None)
+        save_database()
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        found_any = False
+        for country, data in product_inventory["Telegram Protocol"]["items"].items():
+            if query in country.lower() or query in data.get("code", "").lower():
+                zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in data.get("zip_files", []))
+                stock_count = len(data.get("accounts", [])) + zip_stock_count
+                price = data.get("price", 1.00)
+                markup.add(types.InlineKeyboardButton(f"🌐 {country} ({data.get('code', '')}) — {t['price']}: ${price:.2f} | {t['stock']}: {stock_count}", callback_data=f"select_country_{country}"))
+                found_any = True
+        for p_name, p_data in product_inventory.items():
+            if p_name != "Telegram Protocol" and query in p_name.lower():
+                if p_data.get("type") == "sub_categories" or "items" in p_data:
+                    for sub_name in p_data.get("items", {}).keys():
+                        if query in sub_name.lower():
+                            markup.add(types.InlineKeyboardButton(f"📂 {p_name} -> {sub_name}", callback_data=f"prod_sub_buy_{p_name}_{sub_name}"))
+                            found_any = True
+                else:
+                    stock_count = len(p_data.get("accounts", []))
+                    price = p_data.get("price", 1.00)
+                    markup.add(types.InlineKeyboardButton(f"📦 {p_name} — {t['price']}: ${price:.2f} | {t['stock']}: {stock_count}", callback_data=f"prod_custom_{p_name}"))
+                    found_any = True
+        if found_any:
+            markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
+            bot.send_message(message.chat.id, f"🔍 **Search Results for '{query}':**", parse_mode="Markdown", reply_markup=markup)
+        else:
+            bot.send_message(message.chat.id, f"❌ No products or countries found matching '{query}'.", parse_mode="Markdown", reply_markup=get_main_menu_keyboard(user_id))
+        return
+
     if user_states.get(user_id) == "waiting_for_new_country":
         if is_admin(user_id):
             c_name = message.text.strip().capitalize()
@@ -869,14 +929,17 @@ def handle_all_messages(message):
 
     text = message.text if message.text else ""
     
+    is_dashboard = text in [LANG["en"]["menu_dashboard"], LANG["zh"]["menu_dashboard"]]
     is_products = text in [LANG["en"]["menu_products"], LANG["zh"]["menu_products"]]
     is_account = text in [LANG["en"]["menu_account"], LANG["zh"]["menu_account"]]
     is_deposit = text in [LANG["en"]["menu_deposit"], LANG["zh"]["menu_deposit"]]
+    is_history = text in [LANG["en"]["menu_history"], LANG["zh"]["menu_history"]]
     is_support = text in [LANG["en"]["menu_support"], LANG["zh"]["menu_support"]]
     is_lang = text in [LANG["en"]["menu_lang"], LANG["zh"]["menu_lang"]]
+    is_search = text in [LANG["en"]["menu_search"], LANG["zh"]["menu_search"]]
     is_admin_menu = text in [LANG["en"]["menu_admin"], LANG["zh"]["menu_admin"]]
 
-    if any([is_products, is_account, is_deposit, is_support, is_lang, is_admin_menu]):
+    if any([is_dashboard, is_products, is_account, is_deposit, is_history, is_support, is_lang, is_search, is_admin_menu]):
         user_states.pop(user_id, None)
         save_database()
 
@@ -888,12 +951,32 @@ def handle_all_messages(message):
         else:
             bot.send_message(message.chat.id, "❌ Access denied.")
         return
+    elif is_dashboard:
+        dashboard_text = t["dashboard"] + "\n\n"
+        for cat_name, cat_data in product_inventory.items():
+            dashboard_text += f"📂 **{cat_name}**\n"
+            if cat_name == "Telegram Protocol" and "items" in cat_data:
+                for c_name, c_info in cat_data["items"].items():
+                    zip_st = sum(len(zf.get("extracted_files", [])) for zf in c_info.get("zip_files", []))
+                    total_st = len(c_info.get("accounts", [])) + zip_st
+                    dashboard_text += f"  • {c_name} ({c_info.get('code', '')}) — {t['price']}: ${c_info.get('price', 1.00):.2f} | {t['stock']}: {total_st}\n"
+            elif "items" in cat_data:
+                for sub_n, sub_inf in cat_data["items"].items():
+                    sub_st = len(sub_inf.get("accounts", []))
+                    dashboard_text += f"  • {sub_n} — {t['price']}: ${sub_inf.get('price', 1.00):.2f} | {t['stock']}: {sub_st}\n"
+            elif "price" in cat_data:
+                st_count = len(cat_data.get("accounts", []))
+                dashboard_text += f"  • {t['price']}: ${cat_data.get('price', 1.00):.2f} | {t['stock']}: {st_count}\n"
+            dashboard_text += "\n"
+        bot.send_message(message.chat.id, dashboard_text, parse_mode="Markdown", reply_markup=get_main_menu_keyboard(user_id))
     elif is_products:
         bot.send_message(message.chat.id, t["products"], parse_mode="Markdown", reply_markup=get_products_categories_keyboard(user_id))
     elif is_deposit:
         user_states[user_id] = "waiting_for_deposit"
         save_database()
         bot.send_message(message.chat.id, t["deposit"], parse_mode="Markdown", reply_markup=get_select_amount_keyboard(user_id))
+    elif is_history:
+        bot.send_message(message.chat.id, t["history"], parse_mode="Markdown", reply_markup=get_history_menu_keyboard(user_id))
     elif is_account:
         user = message.from_user
         username = f"@{user.username}" if user.username else "N/A"
@@ -903,6 +986,10 @@ def handle_all_messages(message):
         bot.send_message(message.chat.id, account_text, parse_mode="Markdown")
     elif is_lang:
         bot.send_message(message.chat.id, t["language"], parse_mode="Markdown", reply_markup=get_language_keyboard(user_id))
+    elif is_search:
+        user_states[user_id] = "waiting_for_search_query"
+        save_database()
+        bot.send_message(message.chat.id, t["search"], parse_mode="Markdown")
     elif is_support:
         support_msg = t["support"].format(support_user=support_admin_username)
         bot.send_message(message.chat.id, support_msg, parse_mode="Markdown")
@@ -1790,6 +1877,53 @@ def handle_inline_clicks(call):
             bot.send_message(call.message.chat.id, order_text, parse_mode="Markdown", reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
         return
 
+    elif call.data == "hist_purchase":
+        bot.answer_callback_query(call.id, "Purchase History")
+        purchases = user_purchases.get(user_id, [])
+        formatted_purchases = []
+        for p in purchases:
+            if isinstance(p, dict):
+                formatted_purchases.append(p.get("text", ""))
+            else:
+                formatted_purchases.append(str(p))
+        if lang_code == "zh":
+            hist_text = "📦 **购买历史记录 (最近 30 小时)**\n──────────────────────\n" + ("\n".join(formatted_purchases) if formatted_purchases else "暂无购买记录或超过30小时的记录已被清除。")
+        else:
+            hist_text = "📦 **PURCHASE HISTORY (Last 30 Hours)**\n──────────────────────\n" + ("\n".join(formatted_purchases) if formatted_purchases else "No purchases yet or records older than 30 hours cleared.")
+        try:
+            bot.edit_message_text(hist_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(t["back"], callback_data="back_to_history_menu")))
+        except Exception:
+            pass
+        return
+
+    elif call.data == "hist_deposit":
+        bot.answer_callback_query(call.id, "Deposit History")
+        deposits = user_deposits.get(user_id, [])
+        formatted_deposits = []
+        for d in deposits:
+            if isinstance(d, dict):
+                formatted_deposits.append(d.get("text", ""))
+            else:
+                formatted_deposits.append(str(d))
+        if lang_code == "zh":
+            dep_text = "💰 **充值历史记录 (最近 30 小时)**\n──────────────────────\n" + ("\n".join(formatted_deposits) if formatted_deposits else "暂无充值订单记录或超过30小时的记录已被清除。")
+        else:
+            dep_text = "💰 **DEPOSIT HISTORY (Last 30 Hours)**\n──────────────────────\n" + ("\n".join(formatted_deposits) if formatted_deposits else "No deposit orders yet or records older than 30 hours cleared.")
+        try:
+            bot.edit_message_text(dep_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(t["back"], callback_data="back_to_history_menu")))
+        except Exception:
+            pass
+        return
+
+    elif call.data == "back_to_history_menu":
+        bot.answer_callback_query(call.id, "History Menu")
+        history_main_text = t["history"]
+        try:
+            bot.edit_message_text(history_main_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_history_menu_keyboard(user_id))
+        except Exception:
+            pass
+        return
+
     if call.data == "admin_broadcast_start":
         if is_admin(user_id):
             user_states[user_id] = "waiting_for_broadcast_message"
@@ -1903,3 +2037,5 @@ if __name__ == '__main__':
     print("Bot is running with Webhook and Firebase Realtime Database...")
     while True:
         time.sleep(10)
+
+History, Search,Dashboard রিমুভ করে দাও
