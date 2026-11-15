@@ -1,7 +1,7 @@
 import telebot
 from telebot import types
 import pyzipper
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import random
 import os
 import io
@@ -12,15 +12,20 @@ import firebase_admin
 from firebase_admin import credentials, db
 import time
 
-TOKEN = os.environ.get("BOT_TOKEN", "8908618066:AAFFy784DNUzLgr0QxCCvGmrx5D6gpJiYbY")
+# --- CONFIG ---
+TOKEN = "8908618066:AAFFy784DNUzLgr0QxCCvGmrx5D6gpJiYbY"
 bot = telebot.TeleBot(TOKEN)
 
 ADMIN_IDS = [8138758919]
 ADMIN_PASSWORD = "101010"
 
 def is_admin(user_id):
-    return int(user_id) in [int(admin_id) for admin_id in ADMIN_IDS]
+    try:
+        return int(user_id) in [int(a) for a in ADMIN_IDS]
+    except:
+        return False
 
+# --- FIREBASE ---
 firebase_config_json = os.environ.get("FIREBASE_CONFIG_JSON")
 
 if firebase_config_json:
@@ -30,7 +35,7 @@ else:
     cred = credentials.Certificate("firebase_credentials.json")
 
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://telegram-bot-nerupom-default-rtdb.firebaseio.com/'
+    'databaseURL': 'https://telegram-bot-nerupom-default-rtdb.firebaseio.com'
 })
 
 DEFAULT_DATABASE = {
@@ -124,7 +129,7 @@ for k, v in raw_deposits.items():
 used_txids = set(db_data.get("used_txids", []))
 user_languages = {int(k): v for k, v in db_data.get("user_languages", {}).items()}
 all_users = set(int(u) for u in db_data.get("all_users", []))
-support_admin_username = db_data.get("support_admin", "@tianpeng7777")
+support_admin_username = db_data.get("support_admin", "@proxyvpnservice17")
 product_inventory = db_data.get("product_inventory", DEFAULT_DATABASE["product_inventory"])
 temp_admin_data = {}
 
@@ -149,7 +154,7 @@ def background_cleanup_job():
                 print("Old history older than 30 hours successfully cleaned up.")
         except Exception as e:
             print(f"Error in background cleanup job: {e}")
-        time.sleep(86400)
+        time.sleep(3600)
 
 LANG = {
     "en": {
@@ -204,7 +209,7 @@ LANG = {
         "history": "目 **历史记录菜单**\n──────────────────────\n请选择您要查看的历史记录类型：",
         "support": "📞 **支持中心**\n\n如有任何帮助、问题或协助，请直接联系我们的支持管理员：\n👉 {support_user}",
         "search": "🔍 **搜索产品**\n\n输入产品名称、国家或电话区号（例如：USA, Bangladesh, +880）：",
-        "language": "🌐 **语言设置 / Language Settings**\n\n请选择您的首选语言：",
+        "language": "🌐 **语言设置 / Language Settings**\n\nPlease select your preferred language:",
         "admin": "🛠️ **欢迎来到管理面板**\n\n在下方选择一个选项：",
         "menu_dashboard": "📊 仪表盘",
         "menu_products": "◆ 产品中心",
@@ -406,7 +411,6 @@ def get_admin_panel_keyboard(user_id):
         types.InlineKeyboardButton("👥 Management (Users & Balance)", callback_data="admin_management"),
         types.InlineKeyboardButton("➕ Add New Product Category", callback_data="admin_add_category"),
         types.InlineKeyboardButton("📦 Add Stock & Price", callback_data="admin_add_accounts"),
-        types.InlineKeyboardButton("🗂️ Add Zip File Stock (Protocol)", callback_data="admin_add_zip_menu"),  # জিপ ফাইল আপলোডের বাটন এখানে যুক্ত করা হয়েছে
         types.InlineKeyboardButton("✏️ Edit / Delete Categories", callback_data="admin_edit_delete_cat_menu"),
         types.InlineKeyboardButton("📞 Change Support Username", callback_data="admin_change_support"),
         types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu")
@@ -1649,15 +1653,19 @@ def handle_inline_clicks(call):
     elif call.data.startswith("dep_accept_"):
         if is_admin(user_id):
             try:
-                parts = call.data.split("_")
-                target_user_id = int(parts[2])
-                amount = float(parts[3])
-                txid_val = parts[4] if len(parts) > 4 else ""
+                rest = call.data.replace("dep_accept_", "", 1)
+                parts = rest.split("_", 2)
+                target_user_id = int(parts[0])
+                amount = float(parts[1])
+                txid_val = parts[2] if len(parts) > 2 else ""
                 if txid_val:
                     used_txids.add(txid_val)
                 if target_user_id not in user_balances:
                     user_balances[target_user_id] = 0.00
                 user_balances[target_user_id] += amount
+                if target_user_id not in user_deposits:
+                    user_deposits[target_user_id] = []
+                user_deposits[target_user_id].append({"text": f"Deposit Approved: ${amount:.2f} | TxID: {txid_val}", "timestamp": time.time()})
                 save_database()
                 bot.answer_callback_query(call.id, "Deposit Accepted!")
                 try:
@@ -1666,6 +1674,7 @@ def handle_inline_clicks(call):
                     pass
                 bot.send_message(target_user_id, f"🎉 **Your deposit of ${amount:.2f} has been approved and added to your balance!**", parse_mode="Markdown")
             except Exception as e:
+                print(f"dep_accept error: {e}")
                 bot.answer_callback_query(call.id, "Error processing approval", show_alert=True)
         return
 
@@ -2018,6 +2027,8 @@ class SimpleHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.send_response(200)
         self.end_headers()
+    def log_message(self, format, *args):
+        return
 
 def run_web_server():
     port = int(os.environ.get("PORT", 10000))
