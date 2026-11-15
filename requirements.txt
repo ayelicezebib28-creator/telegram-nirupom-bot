@@ -1,3 +1,4 @@
 pyTelegramBotAPI
 pyzipper
-firebase-admin
+requests
+flask
