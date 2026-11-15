@@ -12,7 +12,7 @@ from threading import Thread
 from flask import Flask
 
 # Token Setup
-TOKEN = "8908618066:AAFdUFbISehMUXGeCXf2SjwS5PNPLFlqFPU"
+TOKEN = "9026616821:AAFWM050T51iKeXudZasA36IEMk5CrtXZB0"
 bot = telebot.TeleBot(TOKEN)
 
 # Firebase Database URL
