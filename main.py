@@ -1,4 +1,4 @@
-Import telebot
+import telebot
 from telebot import types
 import pyzipper
 from datetime import datetime, timezone, timedelta
@@ -15,7 +15,7 @@ import time
 TOKEN = os.environ.get("BOT_TOKEN", "8908618066:AAFFy784DNUzLgr0QxCCvGmrx5D6gpJiYbY")
 bot = telebot.TeleBot(TOKEN)
 
-ADMIN_IDS = [8138758919, 6911427937]
+ADMIN_IDS = [8138758919]
 ADMIN_PASSWORD = "101010"
 
 def is_admin(user_id):
@@ -124,7 +124,7 @@ for k, v in raw_deposits.items():
 used_txids = set(db_data.get("used_txids", []))
 user_languages = {int(k): v for k, v in db_data.get("user_languages", {}).items()}
 all_users = set(int(u) for u in db_data.get("all_users", []))
-support_admin_username = db_data.get("support_admin", "@proxyvpnservice17")
+support_admin_username = db_data.get("support_admin", "@tianpeng7777")
 product_inventory = db_data.get("product_inventory", DEFAULT_DATABASE["product_inventory"])
 temp_admin_data = {}
 
