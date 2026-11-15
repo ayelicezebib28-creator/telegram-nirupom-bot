@@ -2037,5 +2037,3 @@ if __name__ == '__main__':
     print("Bot is running with Webhook and Firebase Realtime Database...")
     while True:
         time.sleep(10)
-
-History, Search,Dashboard রিমুভ করে দাও
