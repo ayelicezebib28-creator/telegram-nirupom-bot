@@ -1,4 +1,4 @@
-import telebot
+ import telebot
 from telebot import types
 import pyzipper
 from datetime import datetime, timezone, timedelta
@@ -8,6 +8,8 @@ import io
 import json
 import time
 import requests
+from threading import Thread
+from flask import Flask
 
 # টোকেন সেটআপ
 TOKEN = "8908618066:AAFdUFbISehMUXGeCXf2SjwS5PNPLFlqFPU"
@@ -33,6 +35,23 @@ used_txids = set()
 user_languages = {}
 all_users = set()
 temp_admin_data = {}
+
+# ----------------- RENDER DUMMY WEB SERVER (PORT BINDING) -----------------
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is running live!"
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run_web_server)
+    t.daemon = True
+    t.start()
+# --------------------------------------------------------------------------
 
 # ----------------- FIREBASE HELPER FUNCTIONS -----------------
 def fb_get(path):
@@ -1536,6 +1555,8 @@ def handle_inline_clicks(call):
         send_welcome(call.message)
 
 if __name__ == '__main__':
+    print("Starting Dummy Web Server for Render Port Binding...")
+    keep_alive()
     print("Loading data from Firebase...")
     load_data_from_firebase()
     set_bot_commands(bot)
