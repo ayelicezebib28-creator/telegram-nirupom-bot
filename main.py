@@ -146,6 +146,7 @@ def background_cleanup_job():
                     updated = True
             if updated:
                 save_database()
+                print("Old history older than 30 hours successfully cleaned up.")
         except Exception as e:
             print(f"Error in background cleanup job: {e}")
         time.sleep(86400)
@@ -185,7 +186,8 @@ LANG = {
         "credit_by_admin": "Your balance will be credited by admin once verified.",
         "proof_prompt": "Now please send your payment Proof / Trx Order ID / Screenshot:",
         "proof_sent": "📤 Your payment proof / Order ID has been sent to the admin successfully. Please wait for verification.",
-        "txid_used": "❌ **This Order ID / TxID has already been used!** Each ID can only be used once for a deposit."
+        "txid_used": "❌ **This Order ID / TxID has already been used!** Each ID can only be used once for a deposit.",
+        "no_history": "No records yet."
     },
     "zh": {
         "welcome": "欢迎, {user_name}。\n\n────────────────────────\n◆ **我们的业务** ◆\n各种日常需求、数字和实体产品——批发/零售！\n\n‣ **第一次在我们这里购买？** 批量订购前请购买小额测试批次，以免产生不必要的纠纷。感谢您的合作！\n\n‣ **免责声明：** 所有产品均经过质量和测试目的验证，不得用于任何非法活动。请遵守您当地的法律法规。\n────────────────────────\n‣ 使用下方的菜单开始。",
@@ -221,7 +223,8 @@ LANG = {
         "credit_by_admin": "管理员验证后将自动为您的账户充值余额。",
         "proof_prompt": "请发送您的付款凭证 / 交易单号 (TxID) / 截图：",
         "proof_sent": "📤 您的付款凭证 / 订单号已成功发送给管理员，请等待验证。",
-        "txid_used": "❌ **此订单号 / TxID 已被使用！** 每个单号只能用于充值一次。"
+        "txid_used": "❌ **此订单号 / TxID 已被使用！** 每个单号只能用于充值一次。",
+        "no_history": "暂无记录。"
     }
 }
 
@@ -384,6 +387,7 @@ def get_admin_panel_keyboard(user_id):
 def get_management_keyboard(user_id):
     markup = types.InlineKeyboardMarkup(row_width=1)
     total_users = len(all_users)
+    total_balance = sum(user_balances.get(int(u), 0.0) for u in all_users)
     markup.add(types.InlineKeyboardButton(f"👥 All Users List ({total_users})", callback_data="mgmt_users_0"))
     markup.add(types.InlineKeyboardButton("🔍 Search User by ID", callback_data="mgmt_search_user"))
     markup.add(types.InlineKeyboardButton("💰 Top Balance Users", callback_data="mgmt_top_balance"))
@@ -420,6 +424,10 @@ def get_user_detail_keyboard(target_uid):
         types.InlineKeyboardButton("➖ Subtract Balance", callback_data=f"mgmt_bal_sub_{target_uid}"),
         types.InlineKeyboardButton("✏️ Set Balance", callback_data=f"mgmt_bal_set_{target_uid}"),
         types.InlineKeyboardButton("🔄 Reset to $0", callback_data=f"mgmt_bal_reset_{target_uid}"),
+    )
+    markup.add(
+        types.InlineKeyboardButton("📦 Purchase History", callback_data=f"mgmt_hist_pur_{target_uid}"),
+        types.InlineKeyboardButton("💰 Deposit History", callback_data=f"mgmt_hist_dep_{target_uid}"),
     )
     markup.add(types.InlineKeyboardButton("🔙 Back to Users List", callback_data="mgmt_users_0"))
     markup.add(types.InlineKeyboardButton("🛠️ Back to Admin Panel", callback_data="admin_back"))
@@ -851,9 +859,9 @@ def handle_all_messages(message):
                             "extracted_files": valid_files
                         })
                         save_database()
-                        bot.send_message(message.chat.id, f"✅ Successfully added ZIP stock for **{country_name}**!\n📁 Total valid files: `{len(valid_files)}`\n🔐 Password / 2FA: `{tfa_code}`", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(message.from_user.id))
+                        bot.send_message(message.chat.id, f"✅ Successfully added ZIP stock for **{country_name}**!\n📁 Total valid files: `{len(valid_files)}`\n🔐 Password / 2FA: `{tfa_code}`", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
                 except Exception as e:
-                    bot.send_message(message.chat.id, f"❌ **Password Error!** The password you provided is incorrect or the ZIP file is corrupted.\nError details: `{str(e)}`\nPlease upload the ZIP file again and enter the correct password.", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(message.from_user.id))
+                    bot.send_message(message.chat.id, f"❌ **Password Error!** The password you provided is incorrect or the ZIP file is corrupted.\nError details: `{str(e)}`\nPlease upload the ZIP file again and enter the correct password.", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
             user_states.pop(user_id, None)
             temp_admin_data.pop(user_id, None)
             temp_admin_data.pop(f"zip_bytes_{user_id}", None)
@@ -1121,6 +1129,34 @@ def handle_inline_clicks(call):
                 pass
             try:
                 bot.send_message(target_uid, f"💰 **Your balance has been reset to $0.00 by Admin.**", parse_mode="Markdown")
+            except:
+                pass
+        return
+
+    if call.data.startswith("mgmt_hist_pur_"):
+        if is_admin(user_id):
+            target_uid = int(call.data.replace("mgmt_hist_pur_", ""))
+            pur = user_purchases.get(target_uid, [])
+            txt = "\n".join([p.get("text", "") if isinstance(p, dict) else str(p) for p in pur[-20:]]) or "No purchases yet."
+            bot.answer_callback_query(call.id, "Purchase History")
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data=f"mgmt_user_{target_uid}"))
+            try:
+                bot.edit_message_text(f"📦 **Purchase History - {target_uid}**\n──────────────────────\n{txt}", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
+            except:
+                pass
+        return
+
+    if call.data.startswith("mgmt_hist_dep_"):
+        if is_admin(user_id):
+            target_uid = int(call.data.replace("mgmt_hist_dep_", ""))
+            dep = user_deposits.get(target_uid, [])
+            txt = "\n".join([d.get("text", "") if isinstance(d, dict) else str(d) for d in dep[-20:]]) or "No deposits yet."
+            bot.answer_callback_query(call.id, "Deposit History")
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("🔙 Back", callback_data=f"mgmt_user_{target_uid}"))
+            try:
+                bot.edit_message_text(f"💰 **Deposit History - {target_uid}**\n──────────────────────\n{txt}", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=markup)
             except:
                 pass
         return
