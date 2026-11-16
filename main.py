@@ -18,11 +18,11 @@ bot = telebot.TeleBot(TOKEN)
 # Firebase Database URL
 FIREBASE_URL = "https://telegram-bot-nerupom-default-rtdb.firebaseio.com"
 
-# Support Username
-support_admin_username = "@proxyvpnservice17"
+# Support Username (Updated)
+support_admin_username = "@TG_Logs01"
 
-# Admin ID List
-ADMIN_IDS = [8138758919]
+# Admin ID List (Updated)
+ADMIN_IDS = [9038799543]
 
 # In-memory Database & State Management
 user_amounts = {}
@@ -115,7 +115,7 @@ def is_admin(user_id):
 
 # Country Database
 DEFAULT_DATABASE = {
-    "support_admin": "@proxyvpnservice17",
+    "support_admin": "@TG_Logs01",
     "product_inventory": {
         "Countries": {
             "type": "countries",
@@ -165,7 +165,7 @@ product_inventory = DEFAULT_DATABASE["product_inventory"]
 
 LANG = {
     "en": {
-        "welcome": "📍 🏠 **Main Menu**\n👋 Hello {user_name}!\n\nWelcome to Telegram Bot!\n\n🎯 **Main Features:**\n• 👤 **User Center** - Manage your account\n• 🛍️ **Products** - Browse and buy products\n• ⚡ **TRX & Energy** - TRX and energy trading\n• 💰 **Recharge** - Multiple payment methods\n• 💬 [Support](https://t.me/proxyvpnservice17) - 24/7 online service\n• 🌐 **Language** - Language settings\n\n💡 **Tips:**\nClick the buttons below to access features!",
+        "welcome": "📍 🏠 **Main Menu**\n👋 Hello {user_name}!\n\nWelcome to Telegram Bot!\n\n🎯 **Main Features:**\n• 👤 **User Center** - Manage your account\n• 🛍️ **Products** - Browse and buy products\n• ⚡ **TRX & Energy** - TRX and energy trading\n• 💰 **Recharge** - Multiple payment methods\n• 💬 [Support](https://t.me/TG_Logs01) - 24/7 online service\n• 🌐 **Language** - Language settings\n\n💡 **Tips:**\nClick the buttons below to access features!",
         "products": "📁 **Select a country:**",
         "account": "◆ **USER CENTER / ACCOUNT**\n────────────────────────\nUser ID  ·  `{user_id}`\nUsername  ·  {username}\nBalance  ·  ${balance:.2f}\nPurchased  ·  {purchased_total}\n\n👇 Select a country from the list below:",
         "deposit": "Select amount (USDT):",
@@ -200,7 +200,7 @@ LANG = {
         "txid_used": "❌ **This Order ID / TxID has already been used!** Each ID can only be used once for a deposit."
     },
     "zh": {
-        "welcome": "📍 🏠 **主菜单**\n👋 你好 {user_name}！\n\n欢迎使用电报机器人！\n\n🎯 **主要功能：**\n• 👤 **用户中心** - 管理您的账户\n• 🛍️ **产品中心** - 浏览并购买产品\n• ⚡ **TRX与能量** - TRX及能量交易\n• 💰 **账户充值** - 多种支付方式\n• 💬 [客服支持](https://t.me/proxyvpnservice17) - 7/24在线服务\n• 🌐 **语言设置** - 切换语言选项\n\n💡 **提示：**\n点击下方按钮访问各项功能！",
+        "welcome": "📍 🏠 **主菜单**\n👋 你好 {user_name}！\n\n欢迎使用电报机器人！\n\n🎯 **主要功能：**\n• 👤 **用户中心** - 管理您的账户\n• 🛍️ **产品中心** - 浏览并购买产品\n• ⚡ **TRX与能量** - TRX及能量交易\n• 💰 **账户充值** - 多种支付方式\n• 💬 [客服支持](https://t.me/TG_Logs01) - 7/24在线服务\n• 🌐 **语言设置** - 切换语言选项\n\n💡 **提示：**\n点击下方按钮访问各项功能！",
         "products": "📁 **选择国家：**",
         "account": "◆ **用户中心 / 账户信息**\n────────────────────────\n用户 ID  ·  `{user_id}`\n用户名  ·  {username}\n余额  ·  ${balance:.2f}\n已购总额  ·  {purchased_total}\n\n👇 从下方列表选择国家：",
         "deposit": "请选择充值金额 (USDT)：",
@@ -496,7 +496,6 @@ def handle_all_messages(message):
     t = LANG[lang_code]
     text = message.text if message.text else ""
 
-    # Support Username Update Handler (Fixed)
     if user_states.get(user_id) == "waiting_for_new_support_username":
         global support_admin_username
         new_support = message.text.strip()
@@ -525,7 +524,7 @@ def handle_all_messages(message):
             "order_id": order_id
         }
 
-        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 8138758919
+        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 9038799543
         user_name = message.from_user.first_name or "N/A"
         username = f"@{message.from_user.username}" if message.from_user.username else "N/A"
         
