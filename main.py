@@ -191,8 +191,7 @@ LANG = {
         "insufficient_balance": "❌ Insufficient balance!\nRequired:",
         "balance_text": "Remaining Balance:",
         "deposit_select_amt": "Enter custom deposit amount (USDT, Min $3):",
-        "min_binance": "❌ Minimum deposit for Binance UID is $3.00!",
-        "min_tron": "❌ Minimum deposit for this network is $3.00!",
+        "min_network": "❌ Minimum deposit for this network is $3.00!",
         "order_created": "[ ORDER CREATED ]",
         "send_exact": "Send exactly",
         "credit_by_admin": "Your balance will be credited by admin once verified.",
@@ -227,8 +226,7 @@ LANG = {
         "insufficient_balance": "❌ 余额不足！\n需要：",
         "balance_text": "剩余余额：",
         "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $3)：",
-        "min_binance": "❌ 币安 UID 最低充值金额为 $3.00！",
-        "min_tron": "❌ 该网络最低充值金额为 $3.00！",
+        "min_network": "❌ 该网络最低充值金额为 $3.00！",
         "order_created": "[ 订单已创建 ]",
         "send_exact": "请准确发送",
         "credit_by_admin": "管理员验证后将自动为您的账户充值余额。",
@@ -279,30 +277,9 @@ def get_payment_methods_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
-        types.InlineKeyboardButton("💛 Binance UID (Min $3)", callback_data="pay_binance"),
-        types.InlineKeyboardButton("💎 Tron Network (Min $3)", callback_data="pay_tron_menu"),
-        types.InlineKeyboardButton("🪙 Bsc Network (BEP20) (Min $3)", callback_data="pay_bsc_menu"),
+        types.InlineKeyboardButton("💵 USDT (TRC20) (Min $3)", callback_data="order_usdt_trc20"),
+        types.InlineKeyboardButton("💵 USDT (BEP20) (Min $3)", callback_data="order_usdt_bep20"),
         types.InlineKeyboardButton(t["cancel"], callback_data="dep_cancel")
-    )
-    return markup
-
-def get_tron_subfolders_keyboard(user_id):
-    t = LANG[get_lang(user_id)]
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("💵 USDT (TRC20) — Min $3", callback_data="order_usdt_trc20"),
-        types.InlineKeyboardButton("💎 TRX (Tron) — Min $3", callback_data="order_trx"),
-        types.InlineKeyboardButton(t["back"], callback_data="dep_confirm")
-    )
-    return markup
-
-def get_bsc_subfolders_keyboard(user_id):
-    t = LANG[get_lang(user_id)]
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("💵 USDT (BEP20) — Min $3", callback_data="order_usdt_bep20"),
-        types.InlineKeyboardButton("🪙 BNB (BEP20) — Min $3", callback_data="order_bnb"),
-        types.InlineKeyboardButton(t["back"], callback_data="dep_confirm")
     )
     return markup
 
@@ -312,12 +289,7 @@ def get_order_created_keyboard(net_code, order_id, user_id):
     send_text = "📤 发送订单号 / 交易单号 (TxID)" if lang_code == "zh" else "📤 Send Order Id / TxID"
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(types.InlineKeyboardButton(send_text, callback_data=f"send_order_id_{order_id}"))
-    if net_code == "tron":
-        markup.add(types.InlineKeyboardButton(t["back"], callback_data="pay_tron_menu"))
-    elif net_code == "bsc":
-        markup.add(types.InlineKeyboardButton(t["back"], callback_data="pay_bsc_menu"))
-    else:
-        markup.add(types.InlineKeyboardButton(t["back"], callback_data="dep_confirm"))
+    markup.add(types.InlineKeyboardButton(t["back"], callback_data="dep_confirm"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
 
@@ -1367,100 +1339,31 @@ def handle_inline_clicks(call):
                 pass
         return
 
-    elif call.data == "pay_binance":
-        current_amount = user_amounts.get(user_id, 3.00)
-        if current_amount < 3.00:
-            bot.answer_callback_query(call.id, t["min_binance"], show_alert=True)
-            return
-        calculated_binance = current_amount * (10.082 / 10.0)
-        send_val_str = f"{calculated_binance:.3f} USDT"
-        order_id = f"ORD-B{random.randint(10000000, 99999999):X}"
-        current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        temp_admin_data[f"order_temp_{user_id}"] = {"order_id": order_id, "method": "Binance UID · USDT"}
-        deposit_text = f"Order: `{order_id}` | Amt: `${current_amount:.2f}` (Binance UID) | Time: {current_time}"
-        if user_id not in user_deposits:
-            user_deposits[user_id] = []
-        user_deposits[user_id].append({"text": deposit_text, "timestamp": time.time()})
-        save_user_data(user_id)
-        
-        binance_order_text = (
-            "[ ORDER CREATED ]  Binance UID · USDT\n"
-            "──────────────────────\n"
-            f"  Send     ·  `{send_val_str}`\n"
-            f"  Credit   ·  ${current_amount:.2f}\n"
-            f"  Order    ·  `{order_id}`\n"
-            "  Network  ·  Binance UID\n"
-            f"  Pay ID   ·  `123456789`\n"
-            "  Name     ·  onwerTGselling\n"
-            f"  Expires  ·  {current_time}\n"
-            "──────────────────────\n"
-            f"Send exactly `{send_val_str}`, including all decimals. The extra decimals only identify your payment; ${current_amount:.2f} is credited.\n"
-            "Your balance will be credited by admin once verified."
-        )
-        bot.answer_callback_query(call.id, "Selected Binance UID")
-        try:
-            bot.edit_message_text(binance_order_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_order_created_keyboard("binance", order_id, user_id))
-        except Exception:
-            bot.send_message(call.message.chat.id, binance_order_text, parse_mode="Markdown", reply_markup=get_order_created_keyboard("binance", order_id, user_id))
-        return
-
-    elif call.data == "pay_tron_menu":
-        bot.answer_callback_query(call.id, "Tron Network selected")
-        try:
-            tron_menu_text = f"💎 **Tron Network** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
-            bot.edit_message_text(tron_menu_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_tron_subfolders_keyboard(user_id))
-        except Exception:
-            pass
-        return
-
-    elif call.data == "pay_bsc_menu":
-        bot.answer_callback_query(call.id, "Bsc Network selected")
-        try:
-            bsc_menu_text = f"🪙 **Bsc Network (BEP20)** (Min Deposit: $3)\n\nSelected Amount: ${user_amounts.get(user_id, 3.00):.2f}\n\nPlease select token/coin type:"
-            bot.edit_message_text(bsc_menu_text, call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_bsc_subfolders_keyboard(user_id))
-        except Exception:
-            pass
-        return
-
-    elif call.data in ["order_usdt_trc20", "order_trx", "order_usdt_bep20", "order_bnb"]:
+    elif call.data in ["order_usdt_trc20", "order_usdt_bep20"]:
         current_amount = user_amounts.get(user_id, 3.00)
         if current_amount < 3.0:
-            bot.answer_callback_query(call.id, t["min_tron"], show_alert=True)
+            bot.answer_callback_query(call.id, t["min_network"], show_alert=True)
             return
         order_id = f"ORD-{random.randint(100000, 999999)}"
         current_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        
         if call.data == "order_usdt_trc20":
             calculated_val = current_amount * (10.016 / 10.0)
             send_val = f"{calculated_val:.3f} USDT"
             credit_val = f"${current_amount:.2f}"
             currency_type = "USDT · TRC20"
-            wallet_address = "xxxx-xxxx-xxxx-xxxx"
-            network_name = "Tron(Trc20)"
+            wallet_address = "TLciFN9Z7DGSsK6eHNP1WGHQxLWN29o2n7"
+            network_name = "Tron (TRC20)"
             net_code = "tron"
-        elif call.data == "order_trx":
-            calculated_trx = current_amount * (31.495 / 10.0)
-            send_val = f"{calculated_trx:.3f} TRX"
-            credit_val = f"${current_amount:.2f}"
-            currency_type = "TRX · TRON"
-            wallet_address = "xxxx-xxxx-xxxx-xxxx"
-            network_name = "TRON"
-            net_code = "tron"
-        elif call.data == "order_usdt_bep20":
+        else:
             calculated_val = current_amount * (10.076 / 10.0)
             send_val = f"{calculated_val:.3f} USDT"
             credit_val = f"${current_amount:.2f}"
             currency_type = "USDT · BEP20"
-            wallet_address = "xxxx-xxxx-xxxx-xxxx"
+            wallet_address = "0x8fd14bf35fc69d0354b5202c936e4ddce33733f9"
             network_name = "BNB Smart Chain (BEP20)"
             net_code = "bsc"
-        else:
-            calculated_bnb = current_amount * (0.014249 / 10.0)
-            send_val = f"{calculated_bnb:.6f} BNB"
-            credit_val = f"${current_amount:.2f}"
-            currency_type = "BNB · BSC"
-            wallet_address = "xxxx-xxxx-xxxx-xxxx"
-            network_name = "BNB Smart Chain (BEP20)"
-            net_code = "bsc"
+
         temp_admin_data[f"order_temp_{user_id}"] = {"order_id": order_id, "method": currency_type}
         deposit_text = f"Order: `{order_id}` | Amt: `${current_amount:.2f}` ({currency_type}) | Time: {current_time}"
         if user_id not in user_deposits:
