@@ -508,7 +508,7 @@ def handle_all_messages(message):
             "order_id": order_id
         }
 
-        admin_id = 8138758919
+        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 8138758919
         user_name = message.from_user.first_name or "N/A"
         username = f"@{message.from_user.username}" if message.from_user.username else "N/A"
         
