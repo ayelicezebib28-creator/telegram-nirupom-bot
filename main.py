@@ -8,12 +8,11 @@ import io
 import json
 import time
 import requests
-from threading import Thread
-from flask import Flask
+from flask import Flask, request
 
 # Token Setup
 TOKEN = "9026616821:AAFWM050T51iKeXudZasA36IEMk5CrtXZB0"
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 
 # Firebase Database URL
 FIREBASE_URL = "https://telegram-bot-nerupom-default-rtdb.firebaseio.com"
@@ -36,21 +35,22 @@ user_languages = {}
 all_users = set()
 temp_admin_data = {}
 
-# ----------------- RENDER DUMMY WEB SERVER (PORT BINDING) -----------------
-app = Flask('')
+# ----------------- FLASK WEB SERVER & WEBHOOK ROUTE -----------------
+app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "OK"
+    return "Telegram Bot is Running via Webhook!"
 
-def run_web_server():
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
-
-def keep_alive():
-    t = Thread(target=run_web_server)
-    t.daemon = True
-    t.start()
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return '', 200
+    else:
+        return '', 403
 # --------------------------------------------------------------------------
 
 # ----------------- FIREBASE HELPER FUNCTIONS -----------------
@@ -1411,11 +1411,18 @@ def handle_inline_clicks(call):
         send_welcome(call.message)
 
 if __name__ == '__main__':
-    print("Starting Dummy Web Server for Render Port Binding...")
-    keep_alive()
     print("Loading data from Firebase...")
     load_data_from_firebase()
     set_bot_commands(bot)
-    print("Bot is running with Firebase Connected and Polling...")
+    
+    # Render-এর নিজস্ব URL সেট করুন
+    RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://telegram-nirupom-bot.onrender.com")
+    
+    # পুরানো ওয়েবহুক রিমूव করে নতুন ওয়েবহুক সেট করা হচ্ছে
     bot.remove_webhook()
-    bot.infinity_polling(skip_pending=True)
+    time.sleep(1)
+    bot.set_webhook(url=f"{RENDER_URL}/{TOKEN}")
+    
+    port = int(os.environ.get("PORT", 8080))
+    print(f"Webhook Bot is running on port {port}...")
+    app.run(host='0.0.0.0', port=port)
