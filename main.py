@@ -41,7 +41,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "Bot is running live!"
+    return "OK"
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8080))
