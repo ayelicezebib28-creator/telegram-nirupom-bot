@@ -496,6 +496,23 @@ def handle_all_messages(message):
     t = LANG[lang_code]
     text = message.text if message.text else ""
 
+    # Support Username Update Handler (Fixed)
+    if user_states.get(user_id) == "waiting_for_new_support_username":
+        global support_admin_username
+        new_support = message.text.strip()
+        if not new_support.startswith("@"):
+            new_support = "@" + new_support
+        support_admin_username = new_support
+        save_support()
+        user_states.pop(user_id, None)
+        bot.send_message(
+            message.chat.id, 
+            f"✅ Support admin username successfully updated to: **{support_admin_username}**", 
+            parse_mode="Markdown", 
+            reply_markup=get_admin_panel_keyboard(user_id)
+        )
+        return
+
     if user_states.get(user_id, "").startswith("waiting_for_txid_"):
         order_id = user_states.get(user_id).replace("waiting_for_txid_", "")
         user_states.pop(user_id, None)
@@ -609,17 +626,6 @@ def handle_all_messages(message):
             bot.send_message(target_uid, f"💰 **Your balance has been updated by Admin!**\n\nNew Balance: **${new_bal:.2f}**", parse_mode="Markdown")
         except:
             pass
-        return
-
-    if user_states.get(user_id) == "waiting_for_new_support_username":
-        global support_admin_username
-        new_support = message.text.strip()
-        if not new_support.startswith("@"):
-            new_support = "@" + new_support
-        support_admin_username = new_support
-        save_support()
-        user_states.pop(user_id, None)
-        bot.send_message(message.chat.id, f"✅ Support admin username successfully updated to: **{support_admin_username}**", parse_mode="Markdown", reply_markup=get_admin_panel_keyboard(user_id))
         return
 
     if user_states.get(user_id) == "waiting_for_new_country":
