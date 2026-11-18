@@ -255,7 +255,7 @@ LANG = {
     "en": {
         "welcome": "📍 Main Menu\n👋 Hello {user_name}!\n\nWelcome to Telegram Bot!\n\nMain Features:\n• User Center - Manage your account\n• Products - Browse and buy products\n• TRX & Energy - TRX and energy trading\n• Recharge - Multiple payment methods\n• Support: {support_user} - 24/7 online service\n• Language - Language settings\n\nTips:\nClick the buttons below to access features!",
         "products": "📁 Select a country:",
-        "account": "◆ USER CENTER / ACCOUNT\n────────────────────────\nUser ID: {user_id}\nUsername: {username}\nBalance: ${balance:.2f}\nPurchased: {purchased_total}\n\n👇 Select a country from the list below:",
+        "account": "◆ USER CENTER / ACCOUNT\n────────────────────────\nUser ID: {user_id}\nUsername: {username}\nBalance: ${balance:.2f}\nPurchased: {purchased_total}",
         "deposit": "Select amount (USDT):",
         "support": "📞 Support Center\n\nFor any help, issues or assistance, please contact our support admin:\n👉 {support_user}",
         "language": "🌐 Language Settings / 语言设置\n\nPlease click the button below to switch language:",
@@ -290,7 +290,7 @@ LANG = {
     "zh": {
         "welcome": "📍 主菜单\n👋 你好 {user_name}！\n\n欢迎使用电报机器人！\n\n主要功能：\n• 用户中心 - 管理您的账户\n• 产品中心 - 浏览并购买产品\n• TRX与能量 - TRX及能量交易\n• 账户充值 - 多种支付方式\n• 客服支持：{support_user} - 7/24在线服务\n• 语言设置 - 切换语言选项\n\n提示：\n点击下方按钮访问各项功能！",
         "products": "📁 选择国家：",
-        "account": "◆ 用户中心 / 账户信息\n────────────────────────\n用户 ID: {user_id}\n用户名: {username}\n余额: ${balance:.2f}\n已购总额: {purchased_total}\n\n👇 从下方列表选择国家：",
+        "account": "◆ 用户中心 / 账户信息\n────────────────────────\n用户 ID: {user_id}\n用户名: {username}\n余额: ${balance:.2f}\n已购总额: {purchased_total}",
         "deposit": "请选择充值金额 (USDT)：",
         "support": "📞 支持中心\n\n如有任何帮助、问题或协助，请直接联系我们的支持管理员：\n👉 {support_user}",
         "language": "🌐 语言设置 / Language Settings\n\nPlease click the button below to switch language:",
@@ -395,17 +395,7 @@ def get_quantity_keyboard(item_key, user_id):
 def get_account_keyboard(user_id):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
-        buttons = []
-        for country, data in product_inventory["Countries"]["items"].items():
-            c_code = data.get("code", "")
-            c_name = data.get("names", {}).get(lang_code, country)
-            zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in data.get("zip_files", []))
-            total_stock = len(data.get("accounts", [])) + zip_stock_count
-            btn_text = f"🌐 {c_name} ({c_code}) [{total_stock}]"
-            buttons.append(types.InlineKeyboardButton(btn_text, callback_data=f"select_country_{country}"))
-        markup.add(*buttons)
+    markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
 
