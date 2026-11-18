@@ -1491,11 +1491,11 @@ def handle_inline_clicks(call):
         order_text = (
             "[ ORDER CREATED ]  " + currency_type + "\n"
             "──────────────────────\n"
-            f"  Send     ·  {send_val}\n"
+            f"  Send     ·  <code>{calculated_val:.3f}</code> USDT\n"
             f"  Credit   ·  {credit_val}\n"
-            f"  Order    ·  {order_id}\n"
+            f"  Order    ·  <code>{order_id}</code>\n"
             f"  Network  ·  {network_name}\n"
-            f"  Address  ·  {wallet_address}\n"
+            f"  Address  ·  <code>{wallet_address}</code>\n"
             f"  Expires  ·  {current_time}\n"
             "──────────────────────\n"
             f"Send exactly {send_val}, including all decimals. This amount was converted from ${current_amount:.2f} at the Binance price when the order was created and ends in a unique identifier; ${current_amount:.2f} is credited when it arrives.\n"
@@ -1504,9 +1504,9 @@ def handle_inline_clicks(call):
         )
         bot.answer_callback_query(call.id, "Order Generated!")
         try:
-            bot.edit_message_text(order_text, call.message.chat.id, call.message.message_id, reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
+            bot.edit_message_text(order_text, call.message.chat.id, call.message.message_id, parse_mode="HTML", reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
         except Exception:
-            bot.send_message(call.message.chat.id, order_text, reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
+            bot.send_message(call.message.chat.id, order_text, parse_mode="HTML", reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
         return
 
     elif call.data == "back_to_products_menu":
