@@ -559,6 +559,7 @@ def handle_document_uploads(message):
 
 @bot.message_handler(content_types=['text', 'photo', 'video', 'document', 'audio'])
 def handle_all_messages(message):
+    global support_admin_username
     user_id = message.from_user.id
     ensure_user_registered(user_id)
 
@@ -623,7 +624,6 @@ def handle_all_messages(message):
         if not text:
             bot.send_message(message.chat.id, "❌ Please enter a valid username:")
             return
-        global support_admin_username
         new_support = text.strip()
         if not new_support.startswith("@"):
             new_support = "@" + new_support
