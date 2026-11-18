@@ -7,6 +7,7 @@ import os
 import io
 import json
 import time
+import base64
 import requests
 from flask import Flask, request
 
@@ -53,67 +54,7 @@ def webhook():
         return '', 403
 # --------------------------------------------------------------------------
 
-# ----------------- FIREBASE HELPER FUNCTIONS -----------------
-def fb_get(path):
-    try:
-        response = requests.get(f"{FIREBASE_URL}/{path}.json")
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        print(f"Firebase GET Error ({path}): {e}")
-    return None
-
-def fb_put(path, data):
-    try:
-        response = requests.put(f"{FIREBASE_URL}/{path}.json", json=data)
-        return response.status_code == 200
-    except Exception as e:
-        print(f"Firebase PUT Error ({path}): {e}")
-    return False
-
-def load_data_from_firebase():
-    global user_balances, user_purchases, user_deposits, user_languages, all_users, product_inventory, support_admin_username
-    
-    b = fb_get("user_balances")
-    if b: user_balances = {int(k): float(v) for k, v in b.items()}
-    
-    p = fb_get("user_purchases")
-    if p: user_purchases = {int(k): v for k, v in p.items()}
-    
-    d = fb_get("user_deposits")
-    if d: user_deposits = {int(k): v for k, v in d.items()}
-    
-    l = fb_get("user_languages")
-    if l: user_languages = {int(k): v for k, v in l.items()}
-    
-    u = fb_get("all_users")
-    if u: all_users = set(int(k) for k in u)
-    
-    inv = fb_get("product_inventory")
-    if inv: product_inventory = inv
-    
-    sup = fb_get("support_admin_username")
-    if sup: support_admin_username = sup
-
-def save_user_data(user_id):
-    fb_put(f"user_balances/{user_id}", user_balances.get(user_id, 0.0))
-    fb_put(f"user_purchases/{user_id}", user_purchases.get(user_id, []))
-    fb_put(f"user_deposits/{user_id}", user_deposits.get(user_id, []))
-    fb_put(f"user_languages/{user_id}", user_languages.get(user_id, "en"))
-    fb_put(f"all_users/{user_id}", True)
-
-def save_inventory():
-    fb_put("product_inventory", product_inventory)
-
-def save_support():
-    fb_put("support_admin_username", support_admin_username)
-
-# ----------------- END FIREBASE HELPERS -----------------
-
-def is_admin(user_id):
-    return int(user_id) in ADMIN_IDS
-
-# Country Database
+# Country Database (Default fallback if Firebase is empty)
 DEFAULT_DATABASE = {
     "support_admin": "@TG_Logs01",
     "product_inventory": {
@@ -163,6 +104,83 @@ DEFAULT_DATABASE = {
 
 product_inventory = DEFAULT_DATABASE["product_inventory"]
 
+# ----------------- FIREBASE HELPER FUNCTIONS -----------------
+def fb_get(path):
+    try:
+        response = requests.get(f"{FIREBASE_URL}/{path}.json", timeout=15)
+        if response.status_code == 200:
+            return response.json()
+    except Exception as e:
+        print(f"Firebase GET Error ({path}): {e}")
+    return None
+
+def fb_put(path, data):
+    try:
+        response = requests.put(f"{FIREBASE_URL}/{path}.json", json=data, timeout=20)
+        if response.status_code != 200:
+            print(f"Firebase PUT Failed ({path}): {response.status_code} - {response.text}")
+        return response.status_code == 200
+    except Exception as e:
+        print(f"Firebase PUT Error ({path}): {e}")
+    return False
+
+def load_data_from_firebase():
+    global user_balances, user_purchases, user_deposits, user_languages, all_users, product_inventory, support_admin_username
+    
+    b = fb_get("user_balances")
+    if b: user_balances = {int(k): float(v) for k, v in b.items()}
+    
+    p = fb_get("user_purchases")
+    if p: user_purchases = {int(k): v for k, v in p.items()}
+    
+    d = fb_get("user_deposits")
+    if d: user_deposits = {int(k): v for k, v in d.items()}
+    
+    l = fb_get("user_languages")
+    if l: user_languages = {int(k): v for k, v in l.items()}
+    
+    u = fb_get("all_users")
+    if u: all_users = set(int(k) for k in u)
+    
+    inv = fb_get("product_inventory")
+    if inv and isinstance(inv, dict):
+        # Ensure structure integrity for lists (Firebase drops empty lists)
+        if "Countries" in inv and "items" in inv["Countries"]:
+            for c_key, c_val in inv["Countries"]["items"].items():
+                if "accounts" not in c_val or c_val["accounts"] is None:
+                    c_val["accounts"] = []
+                if "zip_files" not in c_val or c_val["zip_files"] is None:
+                    c_val["zip_files"] = []
+                else:
+                    for zf in c_val["zip_files"]:
+                        if "extracted_files" not in zf or zf["extracted_files"] is None:
+                            zf["extracted_files"] = []
+        product_inventory = inv
+    
+    sup = fb_get("support_admin_username")
+    if sup: support_admin_username = sup
+
+def save_user_data(user_id):
+    fb_put(f"user_balances/{user_id}", user_balances.get(user_id, 0.0))
+    fb_put(f"user_purchases/{user_id}", user_purchases.get(user_id, []))
+    fb_put(f"user_deposits/{user_id}", user_deposits.get(user_id, []))
+    fb_put(f"user_languages/{user_id}", user_languages.get(user_id, "en"))
+    fb_put(f"all_users/{user_id}", True)
+
+def save_inventory():
+    return fb_put("product_inventory", product_inventory)
+
+def save_support():
+    fb_put("support_admin_username", support_admin_username)
+
+# Load data immediately at startup (works with both gunicorn and direct python execution)
+print("Initializing & Loading data from Firebase...")
+load_data_from_firebase()
+# ----------------- END FIREBASE HELPERS -----------------
+
+def is_admin(user_id):
+    return int(user_id) in ADMIN_IDS
+
 LANG = {
     "en": {
         "welcome": "📍 Main Menu\n👋 Hello {user_name}!\n\nWelcome to Telegram Bot!\n\nMain Features:\n• User Center - Manage your account\n• Products - Browse and buy products\n• TRX & Energy - TRX and energy trading\n• Recharge - Multiple payment methods\n• Support: @TG_Logs01 - 24/7 online service\n• Language - Language settings\n\nTips:\nClick the buttons below to access features!",
@@ -190,8 +208,8 @@ LANG = {
         "insufficient_stock": "❌ Insufficient stock! Available stock:",
         "insufficient_balance": "❌ Insufficient balance!\nRequired:",
         "balance_text": "Remaining Balance:",
-        "deposit_select_amt": "Enter custom deposit amount (USDT, Min $3):",
-        "min_network": "❌ Minimum deposit for this network is $3.00!",
+        "deposit_select_amt": "Enter custom deposit amount (USDT, Min $5):",
+        "min_network": "❌ Minimum deposit for this network is $5.00!",
         "order_created": "[ ORDER CREATED ]",
         "send_exact": "Send exactly",
         "credit_by_admin": "Your balance will be credited by admin once verified.",
@@ -225,8 +243,8 @@ LANG = {
         "insufficient_stock": "❌ 库存不足！可用库存：",
         "insufficient_balance": "❌ 余额不足！\n需要：",
         "balance_text": "剩余余额：",
-        "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $3)：",
-        "min_network": "❌ 该网络最低充值金额为 $3.00！",
+        "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $5)：",
+        "min_network": "❌ 该网络最低充值金额为 $5.00！",
         "order_created": "[ 订单已创建 ]",
         "send_exact": "请准确发送",
         "credit_by_admin": "管理员验证后将自动为您的账户充值余额。",
@@ -240,8 +258,11 @@ def get_lang(user_id):
     return user_languages.get(user_id, "en")
 
 def set_bot_commands(bot_instance):
-    commands = [telebot.types.BotCommand("/start", "Re-start Bot & Open Menu")]
-    bot_instance.set_my_commands(commands)
+    try:
+        commands = [telebot.types.BotCommand("/start", "Re-start Bot & Open Menu")]
+        bot_instance.set_my_commands(commands)
+    except Exception as e:
+        print(f"Set commands error: {e}")
 
 def get_main_menu_keyboard(user_id):
     lang_code = get_lang(user_id)
@@ -262,7 +283,6 @@ def get_select_amount_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     markup = types.InlineKeyboardMarkup(row_width=3)
     markup.add(
-        types.InlineKeyboardButton("3 USDT", callback_data="amt_3"),
         types.InlineKeyboardButton("5 USDT", callback_data="amt_5"),
         types.InlineKeyboardButton("10 USDT", callback_data="amt_10"),
         types.InlineKeyboardButton("20 USDT", callback_data="amt_20"),
@@ -277,8 +297,8 @@ def get_payment_methods_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
-        types.InlineKeyboardButton("💵 USDT (TRC20) (Min $3)", callback_data="order_usdt_trc20"),
-        types.InlineKeyboardButton("💵 USDT (BEP20) (Min $3)", callback_data="order_usdt_bep20"),
+        types.InlineKeyboardButton("💵 USDT (TRC20) (Min $5)", callback_data="order_usdt_trc20"),
+        types.InlineKeyboardButton("💵 USDT (BEP20) (Min $5)", callback_data="order_usdt_bep20"),
         types.InlineKeyboardButton(t["cancel"], callback_data="dep_cancel")
     )
     return markup
@@ -469,7 +489,8 @@ def handle_document_uploads(message):
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         if country_name in product_inventory["Countries"]["items"]:
-            temp_admin_data[f"zip_bytes_{user_id}"] = list(downloaded_file)
+            # Store raw bytes in temp_admin_data
+            temp_admin_data[f"zip_bytes_{user_id}"] = downloaded_file
             user_states[user_id] = "waiting_for_zip_2fa"
             response_msg = (
                 f"✅ ZIP File uploaded successfully for {country_name}!\n\n"
@@ -515,7 +536,7 @@ def handle_all_messages(message):
         order_id = user_states.get(user_id).replace("waiting_for_txid_", "")
         user_states.pop(user_id, None)
         
-        dep_amt = user_amounts.get(user_id, 3.00)
+        dep_amt = user_amounts.get(user_id, 5.00)
         dep_id = f"dep_{user_id}_{int(time.time())}"
         pending_deposits[dep_id] = {
             "user_id": user_id,
@@ -676,6 +697,9 @@ def handle_all_messages(message):
             bot.send_message(message.chat.id, f"⚠️ Country {new_country} already exists!")
         elif old_country in proto_items:
             proto_items[new_country] = proto_items.pop(old_country)
+            if "names" in proto_items[new_country]:
+                proto_items[new_country]["names"]["en"] = new_country
+                proto_items[new_country]["names"]["zh"] = new_country
             save_inventory()
             bot.send_message(message.chat.id, f"✅ Successfully renamed country {old_country} to {new_country}!", reply_markup=get_admin_panel_keyboard(user_id))
         else:
@@ -713,7 +737,7 @@ def handle_all_messages(message):
     if user_states.get(user_id) == "waiting_for_custom_amount":
         try:
             custom_amount = float(message.text.strip())
-            min_limit = 3.00
+            min_limit = 5.00
             if custom_amount < min_limit:
                 bot.send_message(message.chat.id, f"❌ Minimum deposit amount is ${min_limit:.2f}. Please enter again:")
                 return
@@ -734,9 +758,9 @@ def handle_all_messages(message):
     if user_states.get(user_id) == "waiting_for_zip_2fa":
         tfa_code = message.text.strip() if message.text else ""
         country_name = temp_admin_data.get(user_id)
-        zip_bytes_list = temp_admin_data.get(f"zip_bytes_{user_id}")
-        if country_name and zip_bytes_list and tfa_code:
-            zip_bytes = io.BytesIO(bytes(zip_bytes_list))
+        raw_zip_bytes = temp_admin_data.get(f"zip_bytes_{user_id}")
+        if country_name and raw_zip_bytes and tfa_code:
+            zip_bytes = io.BytesIO(raw_zip_bytes)
             try:
                 with pyzipper.AESZipFile(zip_bytes, 'r') as zf:
                     zf.setpassword(tfa_code.encode('utf-8'))
@@ -744,13 +768,19 @@ def handle_all_messages(message):
                     valid_files = [f for f in file_list if not f.endswith('/')]
                     if "zip_files" not in product_inventory["Countries"]["items"][country_name]:
                         product_inventory["Countries"]["items"][country_name]["zip_files"] = []
+                    
+                    # Encode as Base64 string so Firebase stores it reliably and compactly
+                    zip_b64 = base64.b64encode(raw_zip_bytes).decode('utf-8')
                     product_inventory["Countries"]["items"][country_name]["zip_files"].append({
-                        "zip_bytes": zip_bytes_list,
+                        "zip_b64": zip_b64,
                         "2fa": tfa_code,
                         "extracted_files": valid_files
                     })
-                    save_inventory()
-                    bot.send_message(message.chat.id, f"✅ Successfully added ZIP stock for {country_name}!\n📁 Total valid files: {len(valid_files)}\n🔐 Password / 2FA: {tfa_code}", reply_markup=get_admin_panel_keyboard(user_id))
+                    saved = save_inventory()
+                    if saved:
+                        bot.send_message(message.chat.id, f"✅ Successfully added & saved ZIP stock for {country_name}!\n📁 Total valid files: {len(valid_files)}\n🔐 Password / 2FA: {tfa_code}", reply_markup=get_admin_panel_keyboard(user_id))
+                    else:
+                        bot.send_message(message.chat.id, f"⚠️ Stock added in memory but failed to save to Firebase! Please check file size or Firebase rules.", reply_markup=get_admin_panel_keyboard(user_id))
             except Exception as e:
                 bot.send_message(message.chat.id, f"❌ Password Error!\nError details: {str(e)}", reply_markup=get_admin_panel_keyboard(user_id))
         user_states.pop(user_id, None)
@@ -819,7 +849,11 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                 zip_list.pop(0)
             if len(zip_list) > 0:
                 zip_item = zip_list[0]
-                orig_zip_bytes = bytes(zip_item["zip_bytes"])
+                # Support both new base64 format and legacy integer list format
+                if "zip_b64" in zip_item:
+                    orig_zip_bytes = base64.b64decode(zip_item["zip_b64"])
+                else:
+                    orig_zip_bytes = bytes(zip_item["zip_bytes"])
                 tfa_code = zip_item["2fa"]
                 files_in_zip = zip_item["extracted_files"]
                 target_file_name = files_in_zip.pop(0)
@@ -1139,6 +1173,13 @@ def handle_inline_clicks(call):
             pass
         return
 
+    if call.data.startswith("qty_other_"):
+        item_key = call.data.replace("qty_other_", "")
+        user_states[user_id] = f"waiting_for_custom_qty_{item_key}"
+        bot.answer_callback_query(call.id, "Enter custom quantity")
+        bot.send_message(call.message.chat.id, "🔢 Please enter the quantity you want to buy (e.g., 4, 15):")
+        return
+
     if call.data.startswith("qty_"):
         remainder = call.data.replace("qty_", "")
         last_underscore = remainder.rfind("_")
@@ -1341,8 +1382,8 @@ def handle_inline_clicks(call):
         return
 
     elif call.data in ["order_usdt_trc20", "order_usdt_bep20"]:
-        current_amount = user_amounts.get(user_id, 3.00)
-        if current_amount < 3.0:
+        current_amount = user_amounts.get(user_id, 5.00)
+        if current_amount < 5.0:
             bot.answer_callback_query(call.id, t["min_network"], show_alert=True)
             return
         order_id = f"ORD-{random.randint(100000, 999999)}"
@@ -1411,14 +1452,12 @@ def handle_inline_clicks(call):
         send_welcome(call.message)
 
 if __name__ == '__main__':
-    print("Loading data from Firebase...")
-    load_data_from_firebase()
     set_bot_commands(bot)
     
     # Render-এর নিজস্ব URL সেট করুন
     RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://telegram-nirupom-bot.onrender.com")
     
-    # পুরানো ওয়েবহুক রিমूव করে নতুন ওয়েবহুক সেট করা হচ্ছে
+    # পুরানো ওয়েবহুক রিমুভ করে নতুন ওয়েবহুক সেট করা হচ্ছে
     bot.remove_webhook()
     time.sleep(1)
     bot.set_webhook(url=f"{RENDER_URL}/{TOKEN}")
