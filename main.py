@@ -44,83 +44,107 @@ temp_admin_data = {}
 
 # ----------------- COUNTRY FLAG HELPER -----------------
 COUNTRY_FLAGS_BY_NAME = {
-    "bangladesh": "🇧🇩",
-    "india": "🇮🇳",
-    "usa": "🇺🇸",
-    "united states": "🇺🇸",
-    "brazil": "🇧🇷",
-    "pakistan": "🇵🇰",
-    "indonesia": "🇮🇩",
-    "canada": "🇨🇦",
-    "uk": "🇬🇧",
-    "united kingdom": "🇬🇧",
-    "russia": "🇷🇺",
-    "china": "🇨🇳",
-    "japan": "🇯🇵",
-    "south korea": "🇰🇷",
-    "korea": "🇰🇷",
-    "malaysia": "🇲🇾",
-    "singapore": "🇸🇬",
-    "thailand": "🇹🇭",
-    "vietnam": "🇻🇳",
-    "philippines": "🇵🇭",
-    "nepal": "🇳🇵",
-    "sri lanka": "🇱🇰",
-    "saudi arabia": "🇸🇦",
-    "uae": "🇦🇪",
-    "turkey": "🇹🇷",
-    "germany": "🇩🇪",
-    "france": "🇫🇷",
-    "italy": "🇮🇹",
-    "spain": "🇪🇸",
-    "australia": "🇦🇺",
-    "mexico": "🇲🇽",
-    "argentina": "🇦🇷",
-    "colombia": "🇨🇴",
-    "nigeria": "🇳🇬",
-    "egypt": "🇪🇬",
-    "south africa": "🇿🇦",
+    "afghanistan": "🇦🇫", "albania": "🇦🇱", "algeria": "🇩🇿", "andorra": "🇦🇩",
+    "angola": "🇦🇴", "argentina": "🇦🇷", "armenia": "🇦🇲", "australia": "🇦🇺",
+    "austria": "🇦🇹", "azerbaijan": "🇦🇿", "bahamas": "🇧🇸", "bahrain": "🇧🇭",
+    "bangladesh": "🇧🇩", "barbados": "🇧🇧", "belarus": "🇧🇾", "belgium": "🇧🇪",
+    "belize": "🇧🇿", "benin": "🇧🇯", "bhutan": "🇧🇹", "bolivia": "🇧🇴",
+    "bosnia": "🇧🇦", "botswana": "🇧🇼", "brazil": "🇧🇷", "brunei": "🇧🇳",
+    "bulgaria": "🇧🇬", "burkina faso": "🇧🇫", "burundi": "🇧🇮", "cambodia": "🇰🇭",
+    "cameroon": "🇨🇲", "canada": "🇨🇦", "chad": "🇹🇩", "chile": "🇨🇱",
+    "china": "🇨🇳", "colombia": "🇨🇴", "congo": "🇨🇬", "costa rica": "🇨🇷",
+    "croatia": "🇭🇷", "cuba": "🇨🇺", "cyprus": "🇨🇾", "czech republic": "🇨🇿",
+    "czechia": "🇨🇿", "denmark": "🇩🇰", "djibouti": "🇩🇯", "dominican republic": "🇩🇴",
+    "ecuador": "🇪🇨", "egypt": "🇪🇬", "el salvador": "🇸🇻", "estonia": "🇪🇪",
+    "ethiopia": "🇪🇹", "fiji": "🇫🇯", "finland": "🇫🇮", "france": "🇫🇷",
+    "gabon": "🇬🇦", "gambia": "🇬🇲", "georgia": "🇬🇪", "germany": "🇩🇪",
+    "ghana": "🇬🇭", "greece": "🇬🇷", "guatemala": "🇬🇹", "guinea": "🇬🇳",
+    "haiti": "🇭🇹", "honduras": "🇭🇳", "hong kong": "🇭🇰", "hungary": "🇭🇺",
+    "iceland": "🇮🇸", "india": "🇮🇳", "indonesia": "🇮🇩", "iran": "🇮🇷",
+    "iraq": "🇮🇶", "ireland": "🇮🇪", "israel": "🇮🇱", "italy": "🇮🇹",
+    "ivory coast": "🇨🇮", "jamaica": "🇯🇲", "japan": "🇯🇵", "jordan": "🇯🇴",
+    "kazakhstan": "🇰🇿", "kenya": "🇰🇪", "kuwait": "🇰🇼", "kyrgyzstan": "🇰🇬",
+    "laos": "🇱🇦", "latvia": "🇱🇻", "lebanon": "🇱🇧", "liberia": "🇱🇷",
+    "libya": "🇱🇾", "lithuania": "🇱🇹", "luxembourg": "🇱🇺", "macau": "🇲🇴",
+    "madagascar": "🇲🇬", "malawi": "🇲🇼", "malaysia": "🇲🇾", "maldives": "🇲🇻",
+    "mali": "🇲🇱", "malta": "🇲🇹", "mauritania": "🇲🇷", "mauritius": "🇲🇺",
+    "mexico": "🇲🇽", "moldova": "🇲🇩", "monaco": "🇲🇨", "mongolia": "🇲🇳",
+    "montenegro": "🇲🇪", "morocco": "🇲🇦", "mozambique": "🇲🇿", "myanmar": "🇲🇲",
+    "burma": "🇲🇲", "namibia": "🇳🇦", "nepal": "🇳🇵", "netherlands": "🇳🇱",
+    "new zealand": "🇳🇿", "nicaragua": "🇳🇮", "niger": "🇳🇪", "nigeria": "🇳🇬",
+    "north korea": "🇰🇵", "north macedonia": "🇲🇰", "norway": "🇳🇴", "oman": "🇴🇲",
+    "pakistan": "🇵🇰", "palestine": "🇵🇸", "panama": "🇵🇦", "papua new guinea": "🇵🇬",
+    "paraguay": "🇵🇾", "peru": "🇵🇪", "philippines": "🇵🇭", "poland": "🇵🇱",
+    "portugal": "🇵🇹", "puerto rico": "🇵🇷", "qatar": "🇶🇦", "romania": "🇷🇴",
+    "russia": "🇷🇺", "rwanda": "🇷🇼", "saudi arabia": "🇸🇦", "senegal": "🇸🇳",
+    "serbia": "🇷🇸", "sierra leone": "🇸🇱", "singapore": "🇸🇬", "slovakia": "🇸🇰",
+    "slovenia": "🇸🇮", "somalia": "🇸🇴", "south africa": "🇿🇦", "south korea": "🇰🇷",
+    "korea": "🇰🇷", "south sudan": "🇸🇸", "spain": "🇪🇸", "sri lanka": "🇱🇰",
+    "sudan": "🇸🇩", "sweden": "🇸🇪", "switzerland": "🇨🇭", "syria": "🇸🇾",
+    "taiwan": "🇹🇼", "tajikistan": "🇹🇯", "tanzania": "🇹🇿", "thailand": "🇹🇭",
+    "togo": "🇹🇬", "trinidad and tobago": "🇹🇹", "tunisia": "🇹🇳", "turkey": "🇹🇷",
+    "turkmenistan": "🇹🇲", "uganda": "🇺🇬", "ukraine": "🇺🇦", "uae": "🇦🇪",
+    "united arab emirates": "🇦🇪", "uk": "🇬🇧", "united kingdom": "🇬🇧",
+    "usa": "🇺🇸", "united states": "🇺🇸", "uruguay": "🇺🇾", "uzbekistan": "🇺🇿",
+    "venezuela": "🇻🇪", "vietnam": "🇻🇳", "yemen": "🇾🇪", "zambia": "🇿🇲",
+    "zimbabwe": "🇿🇼"
 }
 
 COUNTRY_FLAGS_BY_CODE = {
-    "+880": "🇧🇩",
-    "+91": "🇮🇳",
-    "+1": "🇺🇸",
-    "+55": "🇧🇷",
-    "+92": "🇵🇰",
-    "+62": "🇮🇩",
-    "+44": "🇬🇧",
-    "+7": "🇷🇺",
-    "+86": "🇨🇳",
-    "+81": "🇯🇵",
-    "+82": "🇰🇷",
-    "+60": "🇲🇾",
-    "+65": "🇸🇬",
-    "+66": "🇹🇭",
-    "+84": "🇻🇳",
-    "+63": "🇵🇭",
-    "+977": "🇳🇵",
-    "+94": "🇱🇰",
-    "+966": "🇸🇦",
-    "+971": "🇦🇪",
-    "+90": "🇹🇷",
-    "+49": "🇩🇪",
-    "+33": "🇫🇷",
-    "+39": "🇮🇹",
-    "+34": "🇪🇸",
-    "+61": "🇦🇺",
-    "+52": "🇲🇽",
-    "+54": "🇦🇷",
-    "+57": "🇨🇴",
-    "+234": "🇳🇬",
-    "+20": "🇪🇬",
-    "+27": "🇿🇦",
+    "+93": "🇦🇫", "+355": "🇦🇱", "+213": "🇩🇿", "+376": "🇦🇩", "+244": "🇦🇴",
+    "+54": "🇦🇷", "+374": "🇦🇲", "+61": "🇦🇺", "+43": "🇦🇹", "+994": "🇦🇿",
+    "+973": "🇧🇭", "+880": "🇧🇩", "+375": "🇧🇾", "+32": "🇧🇪", "+501": "🇧🇿",
+    "+229": "🇧🇯", "+975": "🇧🇹", "+591": "🇧🇴", "+387": "🇧🇦", "+267": "🇧🇼",
+    "+55": "🇧🇷", "+673": "🇧🇳", "+359": "🇧🇬", "+226": "🇧🇫", "+257": "🇧🇮",
+    "+855": "🇰🇭", "+237": "🇨🇲", "+235": "🇹🇩", "+56": "🇨🇱", "+86": "🇨🇳",
+    "+57": "🇨🇴", "+506": "🇨🇷", "+385": "🇭🇷", "+53": "🇨🇺", "+357": "🇨🇾",
+    "+420": "🇨🇿", "+45": "🇩🇰", "+253": "🇩🇯", "+593": "🇪🇨", "+20": "🇪🇬",
+    "+503": "🇸🇻", "+372": "🇪🇪", "+251": "🇪🇹", "+679": "🇫🇯", "+358": "🇫🇮",
+    "+33": "🇫🇷", "+241": "🇬🇦", "+220": "🇬🇲", "+995": "🇬🇪", "+49": "🇩🇪",
+    "+233": "🇬🇭", "+30": "🇬🇷", "+502": "🇬🇹", "+224": "🇬🇳", "+509": "🇭🇹",
+    "+504": "🇭🇳", "+852": "🇭🇰", "+36": "🇭🇺", "+354": "🇮🇸", "+91": "🇮🇳",
+    "+62": "🇮🇩", "+98": "🇮🇷", "+964": "🇮🇶", "+353": "🇮🇪", "+972": "🇮🇱",
+    "+39": "🇮🇹", "+225": "🇨🇮", "+81": "🇯🇵", "+962": "🇯🇴", "+7": "🇷🇺",
+    "+254": "🇰🇪", "+965": "🇰🇼", "+996": "🇰🇬", "+856": "🇱🇦", "+371": "🇱🇻",
+    "+961": "🇱🇧", "+231": "🇱🇷", "+218": "🇱🇾", "+370": "🇱🇹", "+352": "🇱🇺",
+    "+853": "🇲🇴", "+261": "🇲🇬", "+265": "🇲🇼", "+60": "🇲🇾", "+960": "🇲🇻",
+    "+223": "🇲🇱", "+356": "🇲🇹", "+222": "🇲🇷", "+230": "🇲🇺", "+52": "🇲🇽",
+    "+373": "🇲🇩", "+377": "🇲🇨", "+976": "🇲🇳", "+382": "🇲🇪", "+212": "🇲🇦",
+    "+258": "🇲🇿", "+95": "🇲🇲", "+264": "🇳🇦", "+977": "🇳🇵", "+31": "🇳🇱",
+    "+64": "🇳🇿", "+505": "🇳🇮", "+227": "🇳🇪", "+234": "🇳🇬", "+850": "🇰🇵",
+    "+389": "🇲🇰", "+47": "🇳🇴", "+968": "🇴🇲", "+92": "🇵🇰", "+970": "🇵🇸",
+    "+507": "🇵🇦", "+675": "🇵🇬", "+595": "🇵🇾", "+51": "🇵🇪", "+63": "🇵🇭",
+    "+48": "🇵🇱", "+351": "🇵🇹", "+974": "🇶🇦", "+40": "🇷🇴", "+250": "🇷🇼",
+    "+966": "🇸🇦", "+221": "🇸🇳", "+381": "🇷🇸", "+232": "🇸🇱", "+65": "🇸🇬",
+    "+421": "🇸🇰", "+386": "🇸🇮", "+252": "🇸🇴", "+27": "🇿🇦", "+82": "🇰🇷",
+    "+211": "🇸🇸", "+34": "🇪🇸", "+94": "🇱🇰", "+249": "🇸🇩", "+46": "🇸🇪",
+    "+41": "🇨🇭", "+963": "🇸🇾", "+886": "🇹🇼", "+992": "🇹🇯", "+255": "🇹🇿",
+    "+66": "🇹🇭", "+228": "🇹🇬", "+216": "🇹🇳", "+90": "🇹🇷", "+993": "🇹🇲",
+    "+256": "🇺🇬", "+380": "🇺🇦", "+971": "🇦🇪", "+44": "🇬🇧", "+1": "🇺🇸",
+    "+598": "🇺🇾", "+998": "🇺🇿", "+58": "🇻🇪", "+84": "🇻🇳", "+967": "🇾🇪",
+    "+260": "🇿🇲", "+263": "🇿🇼"
 }
 
+def strip_leading_flag(text):
+    """Removes any leading flag emoji from country name to prevent duplicate flags."""
+    s = str(text).strip()
+    if len(s) >= 2 and 0x1F1E6 <= ord(s[0]) <= 0x1F1FF and 0x1F1E6 <= ord(s[1]) <= 0x1F1FF:
+        return s[2:].strip()
+    return s
+
+def format_country_display_name(country_key, raw_name, lang_code="en"):
+    clean_name = strip_leading_flag(raw_name if raw_name else country_key)
+    if lang_code == "en" and clean_name:
+        clean_name = clean_name[0].upper() + clean_name[1:]
+    return clean_name
+
 def get_country_flag(country_name, country_code=""):
-    name_clean = str(country_name).strip().lower()
-    if name_clean in COUNTRY_FLAGS_BY_NAME:
-        return COUNTRY_FLAGS_BY_NAME[name_clean]
+    clean_name = strip_leading_flag(country_name).lower()
+    if clean_name in COUNTRY_FLAGS_BY_NAME:
+        return COUNTRY_FLAGS_BY_NAME[clean_name]
+    for key, flg in COUNTRY_FLAGS_BY_NAME.items():
+        if key in clean_name:
+            return flg
     code_clean = str(country_code).strip()
     if not code_clean.startswith("+") and code_clean:
         code_clean = "+" + code_clean
@@ -495,11 +519,12 @@ def get_products_countries_keyboard(user_id):
     if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
         for country, data in product_inventory["Countries"]["items"].items():
             c_code = data.get("code", "")
-            c_name = data.get("names", {}).get(lang_code, country)
+            raw_name = data.get("names", {}).get(lang_code, country)
+            clean_name = format_country_display_name(country, raw_name, lang_code)
             flag = get_country_flag(country, c_code)
             zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in data.get("zip_files", []))
             total_stock = len(data.get("accounts", [])) + zip_stock_count
-            btn_text = f"{flag} {c_name} ({c_code}) [{total_stock}]"
+            btn_text = f"{flag} {clean_name} ({c_code}) [{total_stock}]"
             markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"select_country_{country}"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
@@ -779,7 +804,7 @@ def handle_all_messages(message):
         if not text:
             bot.send_message(message.chat.id, "❌ Please enter a country name:")
             return
-        c_name = text.strip().capitalize()
+        c_name = strip_leading_flag(text.strip()).capitalize()
         if c_name not in product_inventory["Countries"]["items"]:
             temp_admin_data[user_id] = c_name
             user_states[user_id] = "waiting_for_country_code"
@@ -825,7 +850,7 @@ def handle_all_messages(message):
 
     if state.startswith("waiting_for_rename_country_") and is_admin(user_id):
         old_country = state.replace("waiting_for_rename_country_", "")
-        new_country = text.strip().capitalize()
+        new_country = strip_leading_flag(text.strip()).capitalize()
         proto_items = product_inventory["Countries"]["items"]
         if new_country in proto_items:
             bot.send_message(message.chat.id, f"⚠️ Country {new_country} already exists!")
@@ -1003,6 +1028,7 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
         return
 
     flag = get_country_flag(item_key, c_data.get("code", ""))
+    clean_country_title = format_country_display_name(item_key, item_key, "en")
     delivered_count = 0
     for _ in range(qty):
         try:
@@ -1035,7 +1061,7 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                     zip_list.pop(0)
 
                 user_balances[user_id] = round(user_balances.get(user_id, 0.0) - price_per_unit, 2)
-                purchase_text = f"Bought {item_key} (ZIP file) for ${price_per_unit:.2f}"
+                purchase_text = f"Bought {clean_country_title} (ZIP file) for ${price_per_unit:.2f}"
                 user_purchases.setdefault(user_id, []).append({"text": purchase_text, "timestamp": time.time()})
                 delivered_count += 1
 
@@ -1043,8 +1069,8 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                 bot.send_document(
                     chat_id,
                     document=single_zip_buffer,
-                    visible_file_name=f"{item_key}_{file_short_name}.zip",
-                    caption=f"{t['purchase_success']}\n\n{flag} Country: {item_key}\n📦 File: {file_short_name}\n🔐 2FA & ZIP Password: {tfa_code}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                    visible_file_name=f"{clean_country_title}_{file_short_name}.zip",
+                    caption=f"{t['purchase_success']}\n\n{flag} Country: {clean_country_title}\n📦 File: {file_short_name}\n🔐 2FA & ZIP Password: {tfa_code}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
                 )
             elif len(accounts_list) > 0:
                 purchased_item = accounts_list.pop(0)
@@ -1052,11 +1078,11 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                 acc_2fa = purchased_item.get("2fa", "N/A")
 
                 user_balances[user_id] = round(user_balances.get(user_id, 0.0) - price_per_unit, 2)
-                purchase_text = f"Bought {item_key}: {acc_num} for ${price_per_unit:.2f}"
+                purchase_text = f"Bought {clean_country_title}: {acc_num} for ${price_per_unit:.2f}"
                 user_purchases.setdefault(user_id, []).append({"text": purchase_text, "timestamp": time.time()})
                 delivered_count += 1
 
-                success_text = f"{t['purchase_success']}\n\n{flag} Country: {item_key}\n📱 Telegram Number: {acc_num}\n🔐 2FA Code: {acc_2fa}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                success_text = f"{t['purchase_success']}\n\n{flag} Country: {clean_country_title}\n📱 Telegram Number: {acc_num}\n🔐 2FA Code: {acc_2fa}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
                 bot.send_message(chat_id, success_text)
         except Exception as e:
             print(f"Error in delivering product: {e}")
@@ -1369,6 +1395,7 @@ def handle_inline_clicks(call):
         price = c_data.get("price", 1.00)
         c_code = c_data.get("code", "")
         flag = get_country_flag(country, c_code)
+        clean_name = format_country_display_name(country, c_data.get("names", {}).get(lang_code, country), lang_code)
         zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in c_data.get("zip_files", []))
         stock_count = len(c_data.get("accounts", [])) + zip_stock_count
         markup = types.InlineKeyboardMarkup(row_width=1)
@@ -1377,7 +1404,7 @@ def handle_inline_clicks(call):
             types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
         )
         try:
-            country_detail_text = f"{flag} Country: {country} ({c_code})\n\n💰 Price: ${price:.2f}\n📦 Available {t['stock']}: {stock_count} items\n\nClick below to proceed to quantity selection:"
+            country_detail_text = f"{flag} Country: {clean_name} ({c_code})\n\n💰 Price: ${price:.2f}\n📦 Available {t['stock']}: {stock_count} items\n\nClick below to proceed to quantity selection:"
             bot.edit_message_text(country_detail_text, call.message.chat.id, call.message.message_id, reply_markup=markup)
         except Exception:
             pass
@@ -1387,9 +1414,10 @@ def handle_inline_clicks(call):
         country = call.data.replace("buy_country_", "")
         c_data = product_inventory["Countries"]["items"].get(country, {})
         flag = get_country_flag(country, c_data.get("code", ""))
+        clean_name = format_country_display_name(country, c_data.get("names", {}).get(lang_code, country), lang_code)
         bot.answer_callback_query(call.id, country)
         try:
-            proto_qty_text = f"🔢 Select Quantity for {flag} {country}:\n\nChoose how many items you want to buy:"
+            proto_qty_text = f"🔢 Select Quantity for {flag} {clean_name}:\n\nChoose how many items you want to buy:"
             bot.edit_message_text(proto_qty_text, call.message.chat.id, call.message.message_id, reply_markup=get_quantity_keyboard(country, user_id))
         except Exception:
             pass
@@ -1425,10 +1453,11 @@ def handle_inline_clicks(call):
         if proto_items:
             for c_name, c_val in proto_items.items():
                 flag = get_country_flag(c_name, c_val.get("code", ""))
+                clean_c = format_country_display_name(c_name, c_name, "en")
                 markup.add(
-                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {c_name}", callback_data=f"admin_edit_price_{c_name}"),
-                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {c_name}", callback_data=f"admin_rename_country_{c_name}"),
-                    types.InlineKeyboardButton(f"❌ Delete: {flag} {c_name}", callback_data=f"admin_delete_country_{c_name}")
+                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {clean_c}", callback_data=f"admin_edit_price_{c_name}"),
+                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {clean_c}", callback_data=f"admin_rename_country_{c_name}"),
+                    types.InlineKeyboardButton(f"❌ Delete: {flag} {clean_c}", callback_data=f"admin_delete_country_{c_name}")
                 )
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
         bot.answer_callback_query(call.id, "Countries Edit Menu")
@@ -1475,10 +1504,11 @@ def handle_inline_clicks(call):
             markup = types.InlineKeyboardMarkup(row_width=1)
             for c, c_val in proto_items.items():
                 flag = get_country_flag(c, c_val.get("code", ""))
+                clean_c = format_country_display_name(c, c, "en")
                 markup.add(
-                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {c}", callback_data=f"admin_edit_price_{c}"),
-                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {c}", callback_data=f"admin_rename_country_{c}"),
-                    types.InlineKeyboardButton(f"❌ Delete: {flag} {c}", callback_data=f"admin_delete_country_{c}")
+                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {clean_c}", callback_data=f"admin_edit_price_{c}"),
+                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {clean_c}", callback_data=f"admin_rename_country_{c}"),
+                    types.InlineKeyboardButton(f"❌ Delete: {flag} {clean_c}", callback_data=f"admin_delete_country_{c}")
                 )
             markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
             try:
@@ -1495,7 +1525,8 @@ def handle_inline_clicks(call):
         markup = types.InlineKeyboardMarkup(row_width=1)
         for c, c_val in product_inventory["Countries"]["items"].items():
             flag = get_country_flag(c, c_val.get("code", ""))
-            markup.add(types.InlineKeyboardButton(f"🗂️ {flag} {c}", callback_data=f"select_zip_country_{c}"))
+            clean_c = format_country_display_name(c, c, "en")
+            markup.add(types.InlineKeyboardButton(f"🗂️ {flag} {clean_c}", callback_data=f"select_zip_country_{c}"))
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
         bot.answer_callback_query(call.id, "ZIP Menu")
         try:
