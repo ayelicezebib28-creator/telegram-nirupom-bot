@@ -10,10 +10,18 @@ import base64
 import requests
 from flask import Flask, request
 
-# Token & Firebase Setup (Recommended: Set BOT_TOKEN in Render Environment Variables)
-TOKEN = os.environ.get("BOT_TOKEN", "9026616821:AAHugks-ZNlpQ0c-_mniTzqIItiAatMdJFY")
-FIREBASE_URL = os.environ.get("FIREBASE_URL", "https://telegram-bot-nerupom-default-rtdb.firebaseio.com")
-RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://telegram-nirupom-bot.onrender.com")
+# Load credentials strictly from Environment Variables (Safe for GitHub)
+TOKEN = os.environ.get("BOT_TOKEN")
+FIREBASE_URL = os.environ.get("FIREBASE_URL")
+RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL")
+
+if not TOKEN:
+    raise ValueError("BOT_TOKEN environment variable is missing!")
+if not FIREBASE_URL:
+    raise ValueError("FIREBASE_URL environment variable is missing!")
+
+# Remove trailing slash from FIREBASE_URL if present
+FIREBASE_URL = FIREBASE_URL.rstrip("/")
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
@@ -226,8 +234,9 @@ def setup_bot_startup():
         commands = [telebot.types.BotCommand("/start", "Re-start Bot & Open Menu")]
         bot.set_my_commands(commands)
         if RENDER_URL:
+            clean_render_url = RENDER_URL.rstrip("/")
             current_webhook = bot.get_webhook_info().url
-            target_webhook = f"{RENDER_URL}/{TOKEN}"
+            target_webhook = f"{clean_render_url}/{TOKEN}"
             if current_webhook != target_webhook:
                 bot.remove_webhook()
                 time.sleep(0.5)
@@ -816,7 +825,7 @@ def handle_all_messages(message):
         pending_deposits[dep_id] = dep_data
         save_pending_deposit(dep_id, dep_data)
 
-        admin_id = ADMIN_IDS[0] if ADMIN_IDS else 9038799543
+        admin_id = ADMIN_IDS[0]
         user_name = message.from_user.first_name or "N/A"
         username = f"@{message.from_user.username}" if message.from_user.username else "N/A"
 
@@ -1026,7 +1035,6 @@ def handle_inline_clicks(call):
                 except Exception:
                     pass
             else:
-                # If rejected, release the TxID so user can re-submit if they made a mistake
                 txid_val = dep_info.get("txid", "")
                 if txid_val and txid_val.lower() in used_txids:
                     used_txids.remove(txid_val.lower())
