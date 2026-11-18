@@ -28,6 +28,7 @@ bot = telebot.TeleBot(TOKEN, threaded=False)
 # Support Username & Admin IDs
 support_admin_username = "@TG_Logs01"
 ADMIN_IDS = [9038799543]
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "N1010")
 
 # In-memory Database & State Management
 user_amounts = {}
@@ -402,17 +403,16 @@ def get_account_keyboard(user_id):
 def get_products_countries_keyboard(user_id):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    # Single layer (1 button per row)
+    markup = types.InlineKeyboardMarkup(row_width=1)
     if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
-        buttons = []
         for country, data in product_inventory["Countries"]["items"].items():
             c_code = data.get("code", "")
             c_name = data.get("names", {}).get(lang_code, country)
             zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in data.get("zip_files", []))
             total_stock = len(data.get("accounts", [])) + zip_stock_count
             btn_text = f"🌐 {c_name} ({c_code}) [{total_stock}]"
-            buttons.append(types.InlineKeyboardButton(btn_text, callback_data=f"select_country_{country}"))
-        markup.add(*buttons)
+            markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"select_country_{country}"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
 
@@ -518,10 +518,12 @@ def send_welcome(message):
 
 @bot.message_handler(commands=['admin'])
 def admin_command(message):
-    if not is_admin(message.from_user.id):
+    user_id = message.from_user.id
+    if not is_admin(user_id):
         bot.send_message(message.chat.id, "❌ You are not authorized to use the admin panel.")
         return
-    bot.send_message(message.chat.id, "🛠️ Welcome to Admin Panel\n\nChoose an option below:", reply_markup=get_admin_panel_keyboard(message.from_user.id))
+    user_states[user_id] = "waiting_for_admin_password"
+    bot.send_message(message.chat.id, "🔐 Please enter the Admin Panel password:")
 
 @bot.message_handler(commands=['cancel'])
 def cancel_operation(message):
@@ -585,7 +587,8 @@ def handle_all_messages(message):
             if not is_admin(user_id):
                 bot.send_message(message.chat.id, "❌ Unauthorized.")
                 return
-            bot.send_message(message.chat.id, "🛠️ Welcome to Admin Panel\n\nChoose an option below:", reply_markup=get_admin_panel_keyboard(user_id))
+            user_states[user_id] = "waiting_for_admin_password"
+            bot.send_message(message.chat.id, "🔐 Please enter the Admin Panel password:")
             return
         elif is_products:
             bot.send_message(message.chat.id, t["products"], reply_markup=get_products_countries_keyboard(user_id))
@@ -609,6 +612,14 @@ def handle_all_messages(message):
 
     # 2. Admin-only states (protected with is_admin check)
     state = user_states.get(user_id, "")
+
+    if state == "waiting_for_admin_password" and is_admin(user_id):
+        if text.strip() == ADMIN_PASSWORD:
+            user_states.pop(user_id, None)
+            bot.send_message(message.chat.id, "🛠️ Welcome to Admin Panel\n\nChoose an option below:", reply_markup=get_admin_panel_keyboard(user_id))
+        else:
+            bot.send_message(message.chat.id, "❌ Incorrect password! Please enter the Admin Panel password again (or send /cancel):")
+        return
 
     if state == "waiting_for_new_support_username" and is_admin(user_id):
         if not text:
