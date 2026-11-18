@@ -42,7 +42,54 @@ user_languages = {}
 all_users = set()
 temp_admin_data = {}
 
-# ----------------- COUNTRY FLAG HELPER -----------------
+# ----------------- COUNTRY FLAG & CHINESE NAME HELPER -----------------
+COUNTRY_ZH_NAMES = {
+    "afghanistan": "阿富汗", "albania": "阿尔巴尼亚", "algeria": "阿尔及利亚", "andorra": "安道尔",
+    "angola": "安哥拉", "argentina": "阿根廷", "armenia": "亚美尼亚", "australia": "澳大利亚",
+    "austria": "奥地利", "azerbaijan": "阿塞拜疆", "bahamas": "巴哈马", "bahrain": "巴林",
+    "bangladesh": "孟加拉国", "barbados": "巴巴多斯", "belarus": "白俄罗斯", "belgium": "比利时",
+    "belize": "伯利兹", "benin": "贝宁", "bhutan": "不丹", "bolivia": "玻利维亚",
+    "bosnia": "波斯尼亚", "botswana": "博茨瓦纳", "brazil": "巴西", "brunei": "文莱",
+    "bulgaria": "保加利亚", "burkina faso": "布基纳法索", "burundi": "布隆迪", "cambodia": "柬埔寨",
+    "cameroon": "喀麦隆", "canada": "加拿大", "chad": "乍得", "chile": "智利",
+    "china": "中国", "colombia": "哥伦比亚", "congo": "刚果", "costa rica": "哥斯达黎加",
+    "croatia": "克罗地亚", "cuba": "古巴", "cyprus": "塞浦路斯", "czech republic": "捷克",
+    "czechia": "捷克", "denmark": "丹麦", "djibouti": "吉布提", "dominican republic": "多米尼加",
+    "ecuador": "厄瓜多尔", "egypt": "埃及", "el salvador": "萨尔瓦多", "estonia": "爱沙尼亚",
+    "ethiopia": "埃塞俄比亚", "fiji": "斐济", "finland": "芬兰", "france": "法国",
+    "gabon": "加蓬", "gambia": "冈比亚", "georgia": "格鲁吉亚", "germany": "德国",
+    "ghana": "加纳", "greece": "希腊", "guatemala": "危地马拉", "guinea": "几内亚",
+    "haiti": "海地", "honduras": "洪都拉斯", "hong kong": "中国香港", "hungary": "匈牙利",
+    "iceland": "冰岛", "india": "印度", "indonesia": "印度尼西亚", "iran": "伊朗",
+    "iraq": "伊拉克", "ireland": "爱尔兰", "israel": "以色列", "italy": "意大利",
+    "ivory coast": "科特迪瓦", "jamaica": "牙买加", "japan": "日本", "jordan": "约旦",
+    "kazakhstan": "哈萨克斯坦", "kenya": "肯尼亚", "kuwait": "科威特", "kyrgyzstan": "吉尔吉斯斯坦",
+    "laos": "老挝", "latvia": "拉脱维亚", "lebanon": "黎巴嫩", "liberia": "利比里亚",
+    "libya": "利比亚", "lithuania": "立陶宛", "luxembourg": "卢森堡", "macau": "中国澳门",
+    "madagascar": "马达加斯加", "malawi": "马拉维", "malaysia": "马来西亚", "maldives": "马尔代夫",
+    "mali": "马里", "malta": "马耳他", "mauritania": "毛里塔尼亚", "mauritius": "毛里求斯",
+    "mexico": "墨西哥", "moldova": "摩尔多瓦", "monaco": "摩纳哥", "mongolia": "蒙古",
+    "montenegro": "黑山", "morocco": "摩洛哥", "mozambique": "莫桑比克", "myanmar": "缅甸",
+    "burma": "缅甸", "namibia": "纳米比亚", "nepal": "尼泊尔", "netherlands": "荷兰",
+    "new zealand": "新西兰", "nicaragua": "尼加拉瓜", "niger": "尼日尔", "nigeria": "尼日利亚",
+    "north korea": "朝鲜", "north macedonia": "北马其顿", "norway": "挪威", "oman": "阿曼",
+    "pakistan": "巴基斯坦", "palestine": "巴勒斯坦", "panama": "巴拿马", "papua new guinea": "巴布亚新几内亚",
+    "paraguay": "巴拉圭", "peru": "秘鲁", "philippines": "菲律宾", "poland": "波兰",
+    "portugal": "葡萄牙", "puerto rico": "波多黎各", "qatar": "卡塔尔", "romania": "罗马尼亚",
+    "russia": "俄罗斯", "rwanda": "卢旺达", "saudi arabia": "沙特阿拉伯", "senegal": "塞内加尔",
+    "serbia": "塞尔维亚", "sierra leone": "塞拉利昂", "singapore": "新加坡", "slovakia": "斯洛伐克",
+    "slovenia": "斯洛文尼亚", "somalia": "索马里", "south africa": "南非", "south korea": "韩国",
+    "korea": "韩国", "south sudan": "南苏丹", "spain": "西班牙", "sri lanka": "斯里兰卡",
+    "sudan": "苏丹", "sweden": "瑞典", "switzerland": "瑞士", "syria": "叙利亚",
+    "taiwan": "中国台湾", "tajikistan": "塔吉克斯坦", "tanzania": "坦桑尼亚", "thailand": "泰国",
+    "togo": "多哥", "trinidad and tobago": "特立尼达和多巴哥", "tunisia": "突尼斯", "turkey": "土耳其",
+    "turkmenistan": "土库曼斯坦", "uganda": "乌干达", "ukraine": "乌克兰", "uae": "阿联酋",
+    "united arab emirates": "阿联酋", "uk": "英国", "united kingdom": "英国",
+    "usa": "美国", "united states": "美国", "uruguay": "乌拉圭", "uzbekistan": "乌兹别克斯坦",
+    "venezuela": "委内瑞拉", "vietnam": "越南", "yemen": "也门", "zambia": "赞比亚",
+    "zimbabwe": "津巴布韦"
+}
+
 COUNTRY_FLAGS_BY_NAME = {
     "afghanistan": "🇦🇫", "albania": "🇦🇱", "algeria": "🇩🇿", "andorra": "🇦🇩",
     "angola": "🇦🇴", "argentina": "🇦🇷", "armenia": "🇦🇲", "australia": "🇦🇺",
@@ -133,10 +180,23 @@ def strip_leading_flag(text):
     return s
 
 def format_country_display_name(country_key, raw_name, lang_code="en"):
-    clean_name = strip_leading_flag(raw_name if raw_name else country_key)
-    if lang_code == "en" and clean_name:
-        clean_name = clean_name[0].upper() + clean_name[1:]
-    return clean_name
+    clean_en = strip_leading_flag(country_key)
+    clean_raw = strip_leading_flag(raw_name if raw_name else country_key)
+    if lang_code == "zh":
+        # If raw_name already has Chinese characters (different from English key), use it
+        if clean_raw and clean_raw.lower() != clean_en.lower() and any('\u4e00' <= ch <= '\u9fff' for ch in clean_raw):
+            return clean_raw
+        key_lower = clean_en.lower()
+        if key_lower in COUNTRY_ZH_NAMES:
+            return COUNTRY_ZH_NAMES[key_lower]
+        for k, zh_val in COUNTRY_ZH_NAMES.items():
+            if k in key_lower:
+                return zh_val
+        return clean_raw
+    else:
+        if clean_raw:
+            return clean_raw[0].upper() + clean_raw[1:]
+        return clean_en
 
 def get_country_flag(country_name, country_code=""):
     clean_name = strip_leading_flag(country_name).lower()
@@ -151,7 +211,7 @@ def get_country_flag(country_name, country_code=""):
     if code_clean in COUNTRY_FLAGS_BY_CODE:
         return COUNTRY_FLAGS_BY_CODE[code_clean]
     return "🌐"
-# -------------------------------------------------------
+# ----------------------------------------------------------------------
 
 # ----------------- FLASK WEB SERVER & WEBHOOK ROUTE -----------------
 app = Flask(__name__)
@@ -370,7 +430,7 @@ LANG = {
         "account": "◆ USER CENTER / ACCOUNT\n────────────────────────\nUser ID: {user_id}\nUsername: {username}\nBalance: ${balance:.2f}\nPurchased: {purchased_total}",
         "deposit": "Select amount (USDT):",
         "support": "📞 Support Center\n\nFor any help, issues or assistance, please contact our support admin:\n👉 {support_user}",
-        "language": "🌐 Language Settings / 语言设置\n\nPlease click the button below to switch language:",
+        "language": "🌐 Language Settings\n\nPlease click the button below to switch language:",
         "admin": "🛠️ Welcome to Admin Panel\n\nChoose an option below:",
         "menu_products": "🛍️ Products",
         "menu_account": "👤 User Center",
@@ -383,21 +443,52 @@ LANG = {
         "back": "< Back",
         "main_menu": "< Main Menu",
         "other_amt": "Other Amount",
+        "other_qty": "Other Quantity",
         "cancel": "< Cancel",
         "stock": "Stock",
         "price": "Price",
         "purchase_success": "✅ Purchase Successful!",
-        "insufficient_stock": "❌ Insufficient stock! Available stock:",
-        "insufficient_balance": "❌ Insufficient balance!\nRequired:",
+        "insufficient_stock": "❌ Insufficient stock! Available stock: {stock} items.",
+        "insufficient_balance": "❌ Insufficient balance!\nRequired: ${required:.2f}\nYour Balance: ${balance:.2f}\nPlease deposit first.",
         "balance_text": "Remaining Balance:",
         "deposit_select_amt": "Enter custom deposit amount (USDT, Min $5):",
         "min_network": "❌ Minimum deposit for this network is $5.00!",
-        "order_created": "[ ORDER CREATED ]",
-        "send_exact": "Send exactly",
-        "credit_by_admin": "Your balance will be credited by admin once verified.",
-        "proof_prompt": "Now please send your payment Proof / Trx Order ID / Screenshot:",
+        "min_deposit_err": "❌ Minimum deposit amount is ${min_limit:.2f}. Please enter again:",
+        "invalid_amount": "❌ Invalid amount. Please enter a valid number (e.g., 5 or 10):",
+        "selected_amount_pay": "💰 Selected Amount: ${amount:.2f}\n\nPlease select your preferred payment method:",
+        "pay_trc20": "💵 USDT (TRC20) (Min $5)",
+        "pay_bep20": "💵 USDT (BEP20) (Min $5)",
+        "send_txid_btn": "📤 Send Order Id / TxID",
+        "txid_prompt": "📤 Please send your payment Transaction ID (TxID) or Proof:\n\nOrder ID: {order_id}",
         "proof_sent": "📤 Your payment proof / Order ID has been sent to the admin successfully. Please wait for verification.",
-        "txid_used": "❌ This Order ID / TxID has already been used! Each ID can only be used once for a deposit."
+        "txid_used": "❌ This Order ID / TxID has already been used! Each ID can only be used once for a deposit.",
+        "country_detail": "{flag} Country: {name} ({code})\n\n💰 Price: ${price:.2f}\n📦 Available Stock: {stock} items\n\nClick below to proceed to quantity selection:",
+        "select_qty_btn": "🛒 Select Quantity",
+        "qty_header": "🔢 Select Quantity for {flag} {name}:\n\nChoose how many items you want to buy:",
+        "enter_custom_qty": "🔢 Please enter the quantity you want to buy (e.g., 4, 15):",
+        "invalid_qty_zero": "❌ Please enter a valid quantity greater than 0:",
+        "invalid_qty_num": "❌ Invalid number! Please enter a valid integer (e.g., 2, 5):",
+        "product_not_found": "❌ Product not found.",
+        "deliver_zip_caption": "✅ Purchase Successful!\n\n{flag} Country: {name}\n📦 File: {file}\n🔐 2FA & ZIP Password: {tfa}\n💵 Paid: ${price:.2f}\n\nRemaining Balance: ${balance:.2f}",
+        "deliver_acc_text": "✅ Purchase Successful!\n\n{flag} Country: {name}\n📱 Telegram Number: {num}\n🔐 2FA Code: {tfa}\n💵 Paid: ${price:.2f}\n\nRemaining Balance: ${balance:.2f}",
+        "deliver_err": "❌ Error delivering item: {err}",
+        "cancel_op": "❌ Current operation cancelled.",
+        "dep_accepted_user": "✅ Your deposit has been accepted successfully!\n\n💰 ${amount:.2f} has been credited to your account.",
+        "dep_rejected_user": "❌ Sorry, your deposit request has been rejected by admin.\nOrder ID: {order_id}",
+        "order_box": (
+            "[ ORDER CREATED ]  {currency}\n"
+            "──────────────────────\n"
+            "  Send     ·  <code>{send_num}</code> USDT\n"
+            "  Credit   ·  {credit}\n"
+            "  Order    ·  <code>{order_id}</code>\n"
+            "  Network  ·  {network}\n"
+            "  Address  ·  <code>{address}</code>\n"
+            "  Expires  ·  {expires}\n"
+            "──────────────────────\n"
+            "Send exactly {send_val}, including all decimals. This amount was converted from ${amount:.2f} at the Binance price when the order was created and ends in a unique identifier; ${amount:.2f} is credited when it arrives.\n"
+            "Send native assets/tokens on the {network} network only.\n"
+            "Your balance will be credited by admin once verified."
+        )
     },
     "zh": {
         "welcome": "📍 主菜单\n👋 你好 {user_name}！\n\n欢迎使用电报机器人！\n\n主要功能：\n• 用户中心 - 管理您的账户\n• 产品中心 - 浏览并购买产品\n• TRX与能量 - TRX及能量交易\n• 账户充值 - 多种支付方式\n• 客服支持：{support_user} - 7/24在线服务\n• 语言设置 - 切换语言选项\n\n提示：\n点击下方按钮访问各项功能！",
@@ -405,7 +496,7 @@ LANG = {
         "account": "◆ 用户中心 / 账户信息\n────────────────────────\n用户 ID: {user_id}\n用户名: {username}\n余额: ${balance:.2f}\n已购总额: {purchased_total}",
         "deposit": "请选择充值金额 (USDT)：",
         "support": "📞 支持中心\n\n如有任何帮助、问题或协助，请直接联系我们的支持管理员：\n👉 {support_user}",
-        "language": "🌐 语言设置 / Language Settings\n\nPlease click the button below to switch language:",
+        "language": "🌐 语言设置\n\n请点击下方按钮切换语言：",
         "admin": "🛠️ 欢迎来到管理面板\n\n在下方选择一个选项：",
         "menu_products": "🛍️ 产品中心",
         "menu_account": "👤 用户中心",
@@ -418,21 +509,52 @@ LANG = {
         "back": "< 返回",
         "main_menu": "< 主菜单",
         "other_amt": "其他金额",
+        "other_qty": "其他数量",
         "cancel": "< 取消",
         "stock": "库存",
         "price": "价格",
         "purchase_success": "✅ 购买成功！",
-        "insufficient_stock": "❌ 库存不足！可用库存：",
-        "insufficient_balance": "❌ 余额不足！\n需要：",
+        "insufficient_stock": "❌ 库存不足！可用库存：{stock} 件。",
+        "insufficient_balance": "❌ 余额不足！\n需要：${required:.2f}\n当前余额：${balance:.2f}\n请先进行充值。",
         "balance_text": "剩余余额：",
         "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $5)：",
         "min_network": "❌ 该网络最低充值金额为 $5.00！",
-        "order_created": "[ 订单已创建 ]",
-        "send_exact": "请准确发送",
-        "credit_by_admin": "管理员验证后将自动为您的账户充值余额。",
-        "proof_prompt": "请发送您的付款凭证 / 交易单号 (TxID) / 截图：",
+        "min_deposit_err": "❌ 最低充值金额为 ${min_limit:.2f}，请重新输入：",
+        "invalid_amount": "❌ 金额无效，请输入有效的数字（例如：5 或 10）：",
+        "selected_amount_pay": "💰 已选金额：${amount:.2f}\n\n请选择您的首选付款方式：",
+        "pay_trc20": "💵 USDT (TRC20) (最低 $5)",
+        "pay_bep20": "💵 USDT (BEP20) (最低 $5)",
+        "send_txid_btn": "📤 发送订单号 / 交易单号 (TxID)",
+        "txid_prompt": "📤 请发送您的付款交易单号 (TxID) 或付款截图凭证：\n\n订单号：{order_id}",
         "proof_sent": "📤 您的付款凭证 / 订单号已成功发送给管理员，请等待验证。",
-        "txid_used": "❌ 此订单号 / TxID 已被使用！ 每个单号只能用于充值一次。"
+        "txid_used": "❌ 此订单号 / TxID 已被使用！每个单号只能用于充值一次。",
+        "country_detail": "{flag} 国家：{name} ({code})\n\n💰 单价：${price:.2f}\n📦 可用库存：{stock} 件\n\n请点击下方按钮选择购买数量：",
+        "select_qty_btn": "🛒 选择数量",
+        "qty_header": "🔢 选择 {flag} {name} 的购买数量：\n\n请选择您要购买的数量：",
+        "enter_custom_qty": "🔢 请输入您要购买的数量（例如：4、15）：",
+        "invalid_qty_zero": "❌ 请输入大于 0 的有效数量：",
+        "invalid_qty_num": "❌ 数字无效！请输入有效的整数（例如：2、5）：",
+        "product_not_found": "❌ 未找到该产品。",
+        "deliver_zip_caption": "✅ 购买成功！\n\n{flag} 国家：{name}\n📦 文件：{file}\n🔐 二次验证及压缩包密码：{tfa}\n💵 实付金额：${price:.2f}\n\n剩余余额：${balance:.2f}",
+        "deliver_acc_text": "✅ 购买成功！\n\n{flag} 国家：{name}\n📱 电报号码：{num}\n🔐 二次验证码：{tfa}\n💵 实付金额：${price:.2f}\n\n剩余余额：${balance:.2f}",
+        "deliver_err": "❌ 发货时出错：{err}",
+        "cancel_op": "❌ 当前操作已取消。",
+        "dep_accepted_user": "✅ 您的充值申请已审核通过！\n\n💰 ${amount:.2f} 已成功入账到您的账户。",
+        "dep_rejected_user": "❌ 抱歉，您的充值申请已被管理员拒绝。\n订单号：{order_id}",
+        "order_box": (
+            "[ 订单已创建 ]  {currency}\n"
+            "──────────────────────\n"
+            "  转账金额  ·  <code>{send_num}</code> USDT\n"
+            "  到账金额  ·  {credit}\n"
+            "  订单编号  ·  <code>{order_id}</code>\n"
+            "  转账网络  ·  {network}\n"
+            "  收款地址  ·  <code>{address}</code>\n"
+            "  创建时间  ·  {expires}\n"
+            "──────────────────────\n"
+            "请准确转账 {send_val}（包含所有小数位）。该金额按创建订单时的币安汇率由 ${amount:.2f} 换算并带有唯一识别尾数；到账后将自动为您充值 ${amount:.2f}。\n"
+            "请仅通过 {network} 网络转账原生资产/代币。\n"
+            "管理员验证通过后将立即为您增加账户余额。"
+        )
     }
 }
 
@@ -472,26 +594,22 @@ def get_payment_methods_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
-        types.InlineKeyboardButton("💵 USDT (TRC20) (Min $5)", callback_data="order_usdt_trc20"),
-        types.InlineKeyboardButton("💵 USDT (BEP20) (Min $5)", callback_data="order_usdt_bep20"),
+        types.InlineKeyboardButton(t["pay_trc20"], callback_data="order_usdt_trc20"),
+        types.InlineKeyboardButton(t["pay_bep20"], callback_data="order_usdt_bep20"),
         types.InlineKeyboardButton(t["cancel"], callback_data="dep_cancel")
     )
     return markup
 
 def get_order_created_keyboard(net_code, order_id, user_id):
     t = LANG[get_lang(user_id)]
-    lang_code = get_lang(user_id)
-    send_text = "📤 发送订单号 / 交易单号 (TxID)" if lang_code == "zh" else "📤 Send Order Id / TxID"
     markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(types.InlineKeyboardButton(send_text, callback_data=f"send_order_id_{order_id}"))
+    markup.add(types.InlineKeyboardButton(t["send_txid_btn"], callback_data=f"send_order_id_{order_id}"))
     markup.add(types.InlineKeyboardButton(t["back"], callback_data="dep_confirm"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
 
 def get_quantity_keyboard(item_key, user_id):
     t = LANG[get_lang(user_id)]
-    lang_code = get_lang(user_id)
-    other_qty_text = "其他数量" if lang_code == "zh" else "Other Quantity"
     markup = types.InlineKeyboardMarkup(row_width=3)
     markup.add(
         types.InlineKeyboardButton("1", callback_data=f"qty_{item_key}_1"),
@@ -499,7 +617,7 @@ def get_quantity_keyboard(item_key, user_id):
         types.InlineKeyboardButton("3", callback_data=f"qty_{item_key}_3"),
         types.InlineKeyboardButton("5", callback_data=f"qty_{item_key}_5"),
         types.InlineKeyboardButton("10", callback_data=f"qty_{item_key}_10"),
-        types.InlineKeyboardButton(other_qty_text, callback_data=f"qty_other_{item_key}"),
+        types.InlineKeyboardButton(t["other_qty"], callback_data=f"qty_other_{item_key}"),
         types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
     )
     return markup
@@ -514,7 +632,6 @@ def get_account_keyboard(user_id):
 def get_products_countries_keyboard(user_id):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
-    # Single layer (1 button per row)
     markup = types.InlineKeyboardMarkup(row_width=1)
     if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
         for country, data in product_inventory["Countries"]["items"].items():
@@ -532,7 +649,7 @@ def get_products_countries_keyboard(user_id):
 def get_language_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     current_lang = get_lang(user_id)
-    btn_text = "🇨🇳 切换到中文 (Switch to Chinese)" if current_lang == "en" else "🇬🇧 Switch to English"
+    btn_text = "🇨🇳 切换到中文" if current_lang == "en" else "🇬🇧 切换为英文 (Switch to English)"
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(types.InlineKeyboardButton(btn_text, callback_data="lang_toggle"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
@@ -624,8 +741,9 @@ def send_welcome(message):
     user_id = message.from_user.id
     user_states.pop(user_id, None)
     ensure_user_registered(user_id)
-    user_name = message.from_user.first_name or "User"
     lang_code = get_lang(user_id)
+    default_user = "用户" if lang_code == "zh" else "User"
+    user_name = message.from_user.first_name or default_user
     welcome_text = LANG[lang_code]["welcome"].format(user_name=user_name, support_user=support_admin_username)
     bot.send_message(message.chat.id, welcome_text, reply_markup=get_main_menu_keyboard(user_id))
 
@@ -633,15 +751,18 @@ def send_welcome(message):
 def admin_command(message):
     user_id = message.from_user.id
     if not is_admin(user_id):
-        bot.send_message(message.chat.id, "❌ You are not authorized to use the admin panel.")
+        msg = "❌ 您无权访问管理面板。" if get_lang(user_id) == "zh" else "❌ You are not authorized to use the admin panel."
+        bot.send_message(message.chat.id, msg)
         return
     user_states[user_id] = "waiting_for_admin_password"
     bot.send_message(message.chat.id, "🔐 Please enter the Admin Panel password:")
 
 @bot.message_handler(commands=['cancel'])
 def cancel_operation(message):
-    user_states.pop(message.from_user.id, None)
-    bot.send_message(message.chat.id, "❌ Current operation cancelled.", reply_markup=get_main_menu_keyboard(message.from_user.id))
+    user_id = message.from_user.id
+    user_states.pop(user_id, None)
+    t = LANG[get_lang(user_id)]
+    bot.send_message(message.chat.id, t["cancel_op"], reply_markup=get_main_menu_keyboard(user_id))
 
 @bot.message_handler(content_types=['document'])
 def handle_document_uploads(message):
@@ -687,7 +808,7 @@ def handle_all_messages(message):
             current_lang = user_languages.get(user_id, "en")
             if current_lang == "en":
                 user_languages[user_id] = "zh"
-                new_lang_name = "中文 (China)"
+                new_lang_name = "中文"
             else:
                 user_languages[user_id] = "en"
                 new_lang_name = "English"
@@ -698,7 +819,7 @@ def handle_all_messages(message):
             return
         elif is_admin_menu:
             if not is_admin(user_id):
-                bot.send_message(message.chat.id, "❌ Unauthorized.")
+                bot.send_message(message.chat.id, "❌ 无权访问。" if lang_code == "zh" else "❌ Unauthorized.")
                 return
             user_states[user_id] = "waiting_for_admin_password"
             bot.send_message(message.chat.id, "🔐 Please enter the Admin Panel password:")
@@ -712,7 +833,8 @@ def handle_all_messages(message):
             return
         elif is_account:
             user = message.from_user
-            username = f"@{user.username}" if user.username else "N/A"
+            no_user_str = "无" if lang_code == "zh" else "N/A"
+            username = f"@{user.username}" if user.username else no_user_str
             balance_val = user_balances.get(user_id, 0.00)
             purchased_total = len(user_purchases.get(user_id, []))
             account_text = t["account"].format(user_id=user.id, username=username, balance=balance_val, purchased_total=purchased_total)
@@ -795,7 +917,13 @@ def handle_all_messages(message):
             reply_markup=get_user_detail_keyboard(target_uid)
         )
         try:
-            bot.send_message(target_uid, f"💰 Your balance has been updated by Admin!\n\nNew Balance: ${new_bal:.2f}")
+            target_lang = get_lang(target_uid)
+            notify_txt = (
+                f"💰 管理员已更新您的账户余额！\n\n当前余额：${new_bal:.2f}"
+                if target_lang == "zh"
+                else f"💰 Your balance has been updated by Admin!\n\nNew Balance: ${new_bal:.2f}"
+            )
+            bot.send_message(target_uid, notify_txt)
         except Exception:
             pass
         return
@@ -818,10 +946,11 @@ def handle_all_messages(message):
         c_code = text.strip()
         c_name = temp_admin_data.get(user_id)
         if c_name and c_code:
+            zh_name = format_country_display_name(c_name, c_name, "zh")
             product_inventory["Countries"]["items"][c_name] = {
                 "code": c_code,
                 "price": 1.00,
-                "names": {"en": c_name, "zh": c_name},
+                "names": {"en": c_name, "zh": zh_name},
                 "accounts": [],
                 "zip_files": []
             }
@@ -858,7 +987,7 @@ def handle_all_messages(message):
             proto_items[new_country] = proto_items.pop(old_country)
             if "names" in proto_items[new_country]:
                 proto_items[new_country]["names"]["en"] = new_country
-                proto_items[new_country]["names"]["zh"] = new_country
+                proto_items[new_country]["names"]["zh"] = format_country_display_name(new_country, new_country, "zh")
             save_inventory()
             bot.send_message(message.chat.id, f"✅ Successfully renamed country {old_country} to {new_country}!", reply_markup=get_admin_panel_keyboard(user_id))
         else:
@@ -976,12 +1105,12 @@ def handle_all_messages(message):
         try:
             qty = int(text.strip())
             if qty <= 0:
-                bot.send_message(message.chat.id, "❌ Please enter a valid quantity greater than 0:")
+                bot.send_message(message.chat.id, t["invalid_qty_zero"])
                 return
             user_states.pop(user_id, None)
             process_product_purchase(message.chat.id, user_id, item_key, qty)
         except ValueError:
-            bot.send_message(message.chat.id, "❌ Invalid number! Please enter a valid integer (e.g., 2, 5):")
+            bot.send_message(message.chat.id, t["invalid_qty_num"])
         return
 
     if state == "waiting_for_custom_amount":
@@ -989,14 +1118,14 @@ def handle_all_messages(message):
             custom_amount = float(text.strip())
             min_limit = 5.00
             if custom_amount < min_limit:
-                bot.send_message(message.chat.id, f"❌ Minimum deposit amount is ${min_limit:.2f}. Please enter again:")
+                bot.send_message(message.chat.id, t["min_deposit_err"].format(min_limit=min_limit))
                 return
             user_amounts[user_id] = custom_amount
             user_states[user_id] = "waiting_for_payment_method"
-            payment_text = f"💰 Selected Amount: ${custom_amount:.2f}\n\nPlease select your preferred payment method:" if lang_code == "en" else f"💰 已选金额： ${custom_amount:.2f}\n\n请选择您的首选付款方式："
+            payment_text = t["selected_amount_pay"].format(amount=custom_amount)
             bot.send_message(message.chat.id, payment_text, reply_markup=get_payment_methods_keyboard(user_id))
         except ValueError:
-            bot.send_message(message.chat.id, "❌ Invalid amount. Please enter a valid number (e.g., 5 or 10):")
+            bot.send_message(message.chat.id, t["invalid_amount"])
         return
 
 def process_product_purchase(chat_id, user_id, item_key, qty):
@@ -1008,13 +1137,13 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
         zip_list = c_data.get("zip_files", [])
         accounts_list = c_data.get("accounts", [])
     else:
-        bot.send_message(chat_id, "❌ Product not found.")
+        bot.send_message(chat_id, t["product_not_found"])
         return
 
     zip_total_files = sum(len(zf.get("extracted_files", [])) for zf in zip_list)
     total_stock = len(accounts_list) + zip_total_files
     if total_stock < qty:
-        bot.send_message(chat_id, f"{t['insufficient_stock']} {total_stock} items.", reply_markup=get_main_menu_keyboard(user_id))
+        bot.send_message(chat_id, t["insufficient_stock"].format(stock=total_stock), reply_markup=get_main_menu_keyboard(user_id))
         return
 
     total_price = round(price_per_unit * qty, 2)
@@ -1022,13 +1151,14 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
     if user_balance < total_price:
         bot.send_message(
             chat_id,
-            f"{t['insufficient_balance']} ${total_price:.2f}\n{t['balance_text'].replace('Remaining', 'Your')} ${user_balance:.2f}\nPlease deposit first.",
+            t["insufficient_balance"].format(required=total_price, balance=user_balance),
             reply_markup=get_main_menu_keyboard(user_id)
         )
         return
 
     flag = get_country_flag(item_key, c_data.get("code", ""))
-    clean_country_title = format_country_display_name(item_key, item_key, "en")
+    display_country_name = format_country_display_name(item_key, c_data.get("names", {}).get(lang_code, item_key), lang_code)
+    clean_en_name = format_country_display_name(item_key, item_key, "en")
     delivered_count = 0
     for _ in range(qty):
         try:
@@ -1061,16 +1191,24 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                     zip_list.pop(0)
 
                 user_balances[user_id] = round(user_balances.get(user_id, 0.0) - price_per_unit, 2)
-                purchase_text = f"Bought {clean_country_title} (ZIP file) for ${price_per_unit:.2f}"
+                purchase_text = f"Bought {clean_en_name} (ZIP file) for ${price_per_unit:.2f}"
                 user_purchases.setdefault(user_id, []).append({"text": purchase_text, "timestamp": time.time()})
                 delivered_count += 1
 
                 file_short_name = os.path.basename(target_file_name)
+                caption_txt = t["deliver_zip_caption"].format(
+                    flag=flag,
+                    name=display_country_name,
+                    file=file_short_name,
+                    tfa=tfa_code,
+                    price=price_per_unit,
+                    balance=user_balances[user_id]
+                )
                 bot.send_document(
                     chat_id,
                     document=single_zip_buffer,
-                    visible_file_name=f"{clean_country_title}_{file_short_name}.zip",
-                    caption=f"{t['purchase_success']}\n\n{flag} Country: {clean_country_title}\n📦 File: {file_short_name}\n🔐 2FA & ZIP Password: {tfa_code}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                    visible_file_name=f"{display_country_name}_{file_short_name}.zip",
+                    caption=caption_txt
                 )
             elif len(accounts_list) > 0:
                 purchased_item = accounts_list.pop(0)
@@ -1078,15 +1216,22 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                 acc_2fa = purchased_item.get("2fa", "N/A")
 
                 user_balances[user_id] = round(user_balances.get(user_id, 0.0) - price_per_unit, 2)
-                purchase_text = f"Bought {clean_country_title}: {acc_num} for ${price_per_unit:.2f}"
+                purchase_text = f"Bought {clean_en_name}: {acc_num} for ${price_per_unit:.2f}"
                 user_purchases.setdefault(user_id, []).append({"text": purchase_text, "timestamp": time.time()})
                 delivered_count += 1
 
-                success_text = f"{t['purchase_success']}\n\n{flag} Country: {clean_country_title}\n📱 Telegram Number: {acc_num}\n🔐 2FA Code: {acc_2fa}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                success_text = t["deliver_acc_text"].format(
+                    flag=flag,
+                    name=display_country_name,
+                    num=acc_num,
+                    tfa=acc_2fa,
+                    price=price_per_unit,
+                    balance=user_balances[user_id]
+                )
                 bot.send_message(chat_id, success_text)
         except Exception as e:
             print(f"Error in delivering product: {e}")
-            bot.send_message(chat_id, f"❌ Error delivering item: {str(e)}")
+            bot.send_message(chat_id, t["deliver_err"].format(err=str(e)))
             break
 
     if delivered_count > 0:
@@ -1130,6 +1275,7 @@ def handle_inline_clicks(call):
             target_uid = int(dep_info["user_id"])
             amount = float(dep_info["amount"])
             order_id = dep_info["order_id"]
+            target_t = LANG[get_lang(target_uid)]
 
             if action == "accept":
                 old_bal = user_balances.get(target_uid, 0.0)
@@ -1148,7 +1294,7 @@ def handle_inline_clicks(call):
                 except Exception:
                     pass
                 try:
-                    bot.send_message(target_uid, f"✅ Your deposit has been accepted successfully!\n\n💰 ${amount:.2f} has been credited to your account.")
+                    bot.send_message(target_uid, target_t["dep_accepted_user"].format(amount=amount))
                 except Exception:
                     pass
             else:
@@ -1163,7 +1309,7 @@ def handle_inline_clicks(call):
                 except Exception:
                     pass
                 try:
-                    bot.send_message(target_uid, f"❌ Sorry, your deposit request has been rejected by admin.\nOrder ID: {order_id}")
+                    bot.send_message(target_uid, target_t["dep_rejected_user"].format(order_id=order_id))
                 except Exception:
                     pass
         else:
@@ -1173,12 +1319,9 @@ def handle_inline_clicks(call):
     if call.data.startswith("send_order_id_"):
         order_id = call.data.replace("send_order_id_", "")
         user_states[user_id] = f"waiting_for_txid_{order_id}"
-        bot.answer_callback_query(call.id, "Send Order ID / TxID")
+        bot.answer_callback_query(call.id)
 
-        prompt_text = (
-            "📤 Please send your payment Transaction ID (TxID) or Proof:\n\n"
-            f"Order ID: {order_id}"
-        )
+        prompt_text = t["txid_prompt"].format(order_id=order_id)
         try:
             bot.edit_message_text(prompt_text, call.message.chat.id, call.message.message_id)
         except Exception:
@@ -1292,7 +1435,9 @@ def handle_inline_clicks(call):
         except Exception:
             pass
         try:
-            bot.send_message(target_uid, "💰 Your balance has been reset to $0.00 by Admin.")
+            target_lang = get_lang(target_uid)
+            reset_txt = "💰 管理员已将您的余额重置为 $0.00。" if target_lang == "zh" else "💰 Your balance has been reset to $0.00 by Admin."
+            bot.send_message(target_uid, reset_txt)
         except Exception:
             pass
         return
@@ -1350,15 +1495,17 @@ def handle_inline_clicks(call):
         except Exception:
             pass
         try:
-            bot.send_message(call.message.chat.id, "👇 Menu updated:", reply_markup=get_main_menu_keyboard(user_id))
+            updated_msg = "👇 菜单已更新：" if lang_code == "zh" else "👇 Menu updated:"
+            bot.send_message(call.message.chat.id, updated_msg, reply_markup=get_main_menu_keyboard(user_id))
         except Exception:
             pass
         return
 
     if call.data == "back_to_account":
-        bot.answer_callback_query(call.id, "Account Menu")
+        bot.answer_callback_query(call.id)
         user = call.from_user
-        username = f"@{user.username}" if user.username else "N/A"
+        no_user_str = "无" if lang_code == "zh" else "N/A"
+        username = f"@{user.username}" if user.username else no_user_str
         balance_val = user_balances.get(user_id, 0.00)
         purchased_total = len(user_purchases.get(user_id, []))
         account_text = t["account"].format(user_id=user.id, username=username, balance=balance_val, purchased_total=purchased_total)
@@ -1371,8 +1518,8 @@ def handle_inline_clicks(call):
     if call.data.startswith("qty_other_"):
         item_key = call.data.replace("qty_other_", "")
         user_states[user_id] = f"waiting_for_custom_qty_{item_key}"
-        bot.answer_callback_query(call.id, "Enter custom quantity")
-        bot.send_message(call.message.chat.id, "🔢 Please enter the quantity you want to buy (e.g., 4, 15):")
+        bot.answer_callback_query(call.id)
+        bot.send_message(call.message.chat.id, t["enter_custom_qty"])
         return
 
     if call.data.startswith("qty_"):
@@ -1380,7 +1527,7 @@ def handle_inline_clicks(call):
         last_underscore = remainder.rfind("_")
         item_key = remainder[:last_underscore]
         qty = int(remainder[last_underscore + 1:])
-        bot.answer_callback_query(call.id, f"Selected {qty} qty")
+        bot.answer_callback_query(call.id)
         try:
             bot.delete_message(call.message.chat.id, call.message.message_id)
         except Exception:
@@ -1390,21 +1537,27 @@ def handle_inline_clicks(call):
 
     elif call.data.startswith("select_country_"):
         country = call.data.replace("select_country_", "")
-        bot.answer_callback_query(call.id, country)
         c_data = product_inventory["Countries"]["items"].get(country, {})
         price = c_data.get("price", 1.00)
         c_code = c_data.get("code", "")
         flag = get_country_flag(country, c_code)
         clean_name = format_country_display_name(country, c_data.get("names", {}).get(lang_code, country), lang_code)
+        bot.answer_callback_query(call.id, clean_name)
         zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in c_data.get("zip_files", []))
         stock_count = len(c_data.get("accounts", [])) + zip_stock_count
         markup = types.InlineKeyboardMarkup(row_width=1)
         markup.add(
-            types.InlineKeyboardButton("🛒 Select Quantity", callback_data=f"buy_country_{country}"),
+            types.InlineKeyboardButton(t["select_qty_btn"], callback_data=f"buy_country_{country}"),
             types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
         )
         try:
-            country_detail_text = f"{flag} Country: {clean_name} ({c_code})\n\n💰 Price: ${price:.2f}\n📦 Available {t['stock']}: {stock_count} items\n\nClick below to proceed to quantity selection:"
+            country_detail_text = t["country_detail"].format(
+                flag=flag,
+                name=clean_name,
+                code=c_code,
+                price=price,
+                stock=stock_count
+            )
             bot.edit_message_text(country_detail_text, call.message.chat.id, call.message.message_id, reply_markup=markup)
         except Exception:
             pass
@@ -1415,9 +1568,9 @@ def handle_inline_clicks(call):
         c_data = product_inventory["Countries"]["items"].get(country, {})
         flag = get_country_flag(country, c_data.get("code", ""))
         clean_name = format_country_display_name(country, c_data.get("names", {}).get(lang_code, country), lang_code)
-        bot.answer_callback_query(call.id, country)
+        bot.answer_callback_query(call.id, clean_name)
         try:
-            proto_qty_text = f"🔢 Select Quantity for {flag} {clean_name}:\n\nChoose how many items you want to buy:"
+            proto_qty_text = t["qty_header"].format(flag=flag, name=clean_name)
             bot.edit_message_text(proto_qty_text, call.message.chat.id, call.message.message_id, reply_markup=get_quantity_keyboard(country, user_id))
         except Exception:
             pass
@@ -1563,7 +1716,7 @@ def handle_inline_clicks(call):
 
     if call.data in ["btn_deposit_open", "dep_confirm", "▲ Deposit"]:
         try:
-            bot.answer_callback_query(call.id, "Loading...")
+            bot.answer_callback_query(call.id)
             bot.edit_message_text(t["deposit"], call.message.chat.id, call.message.message_id, reply_markup=get_select_amount_keyboard(user_id))
         except Exception:
             bot.send_message(call.message.chat.id, t["deposit"], reply_markup=get_select_amount_keyboard(user_id))
@@ -1572,15 +1725,15 @@ def handle_inline_clicks(call):
     elif call.data.startswith("amt_"):
         if call.data == "amt_other":
             user_states[user_id] = "waiting_for_custom_amount"
-            bot.answer_callback_query(call.id, "Enter custom amount")
+            bot.answer_callback_query(call.id)
             bot.send_message(call.message.chat.id, t["deposit_select_amt"])
         else:
             try:
                 selected_val = float(call.data.split("_")[1])
                 user_amounts[user_id] = selected_val
                 user_states[user_id] = "waiting_for_payment_method"
-                payment_text = f"💰 Selected Amount: ${selected_val:.2f}\n\nPlease select your preferred payment method:"
-                bot.answer_callback_query(call.id, f"Selected ${selected_val:.2f}")
+                payment_text = t["selected_amount_pay"].format(amount=selected_val)
+                bot.answer_callback_query(call.id)
                 bot.edit_message_text(payment_text, call.message.chat.id, call.message.message_id, reply_markup=get_payment_methods_keyboard(user_id))
             except Exception:
                 pass
@@ -1616,21 +1769,18 @@ def handle_inline_clicks(call):
         user_deposits.setdefault(user_id, []).append({"text": deposit_text, "timestamp": time.time()})
         save_user_data(user_id)
 
-        order_text = (
-            "[ ORDER CREATED ]  " + currency_type + "\n"
-            "──────────────────────\n"
-            f"  Send     ·  <code>{calculated_val:.3f}</code> USDT\n"
-            f"  Credit   ·  {credit_val}\n"
-            f"  Order    ·  <code>{order_id}</code>\n"
-            f"  Network  ·  {network_name}\n"
-            f"  Address  ·  <code>{wallet_address}</code>\n"
-            f"  Expires  ·  {current_time}\n"
-            "──────────────────────\n"
-            f"Send exactly {send_val}, including all decimals. This amount was converted from ${current_amount:.2f} at the Binance price when the order was created and ends in a unique identifier; ${current_amount:.2f} is credited when it arrives.\n"
-            f"Send native assets/tokens on the {network_name} network only.\n"
-            "Your balance will be credited by admin once verified."
+        order_text = t["order_box"].format(
+            currency=currency_type,
+            send_num=f"{calculated_val:.3f}",
+            credit=credit_val,
+            order_id=order_id,
+            network=network_name,
+            address=wallet_address,
+            expires=current_time,
+            send_val=send_val,
+            amount=current_amount
         )
-        bot.answer_callback_query(call.id, "Order Generated!")
+        bot.answer_callback_query(call.id)
         try:
             bot.edit_message_text(order_text, call.message.chat.id, call.message.message_id, parse_mode="HTML", reply_markup=get_order_created_keyboard(net_code, order_id, user_id))
         except Exception:
@@ -1638,7 +1788,7 @@ def handle_inline_clicks(call):
         return
 
     elif call.data == "back_to_products_menu":
-        bot.answer_callback_query(call.id, "Products Menu")
+        bot.answer_callback_query(call.id)
         try:
             bot.edit_message_text(t["products"], call.message.chat.id, call.message.message_id, reply_markup=get_products_countries_keyboard(user_id))
         except Exception:
@@ -1646,7 +1796,7 @@ def handle_inline_clicks(call):
         return
 
     elif call.data in ["go_main_menu", "dep_cancel"]:
-        bot.answer_callback_query(call.id, "Main Menu")
+        bot.answer_callback_query(call.id)
         user_states.pop(user_id, None)
         try:
             bot.delete_message(call.message.chat.id, call.message.message_id)
