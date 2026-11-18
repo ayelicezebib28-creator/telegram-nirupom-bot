@@ -42,6 +42,80 @@ user_languages = {}
 all_users = set()
 temp_admin_data = {}
 
+# ----------------- COUNTRY FLAG HELPER -----------------
+COUNTRY_FLAGS = {
+    "bangladesh": "🇧🇩",
+    "india": "🇮🇳",
+    "usa": "🇺🇸",
+    "united states": "🇺🇸",
+    "brazil": "🇧🇷",
+    "pakistan": "🇵🇰",
+    "indonesia": "🇮🇩",
+    "canada": "🇨🇦",
+    "uk": "🇬🇧",
+    "united kingdom": "🇬🇧",
+    "england": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+    "russia": "🇷🇺",
+    "china": "🇨🇳",
+    "japan": "🇯🇵",
+    "south korea": "🇰🇷",
+    "korea": "🇰🇷",
+    "malaysia": "🇲🇾",
+    "singapore": "🇸🇬",
+    "thailand": "🇹🇭",
+    "vietnam": "🇻🇳",
+    "philippines": "🇵🇭",
+    "nepal": "🇳🇵",
+    "sri lanka": "🇱🇰",
+    "myanmar": "🇲🇲",
+    "saudi arabia": "🇸🇦",
+    "uae": "🇦🇪",
+    "united arab emirates": "🇦🇪",
+    "dubai": "🇦🇪",
+    "qatar": "🇶🇦",
+    "kuwait": "🇰🇼",
+    "oman": "🇴🇲",
+    "bahrain": "🇧🇭",
+    "turkey": "🇹🇷",
+    "germany": "🇩🇪",
+    "france": "🇫🇷",
+    "italy": "🇮🇹",
+    "spain": "🇪🇸",
+    "portugal": "🇵🇹",
+    "netherlands": "🇳🇱",
+    "poland": "🇵🇱",
+    "ukraine": "🇺🇦",
+    "sweden": "🇸🇪",
+    "norway": "🇳🇴",
+    "switzerland": "🇨🇭",
+    "australia": "🇦🇺",
+    "new zealand": "🇳🇿",
+    "mexico": "🇲🇽",
+    "argentina": "🇦🇷",
+    "colombia": "🇨🇴",
+    "chile": "🇨🇱",
+    "peru": "🇵🇪",
+    "egypt": "🇪🇬",
+    "nigeria": "🇳🇬",
+    "south africa": "🇿🇦",
+    "kenya": "🇰🇪",
+    "morocco": "🇲🇦",
+    "algeria": "🇩🇿",
+    "iran": "🇮🇷",
+    "iraq": "🇮🇶",
+    "afghanistan": "🇦🇫",
+    "uzbekistan": "🇺🇿",
+    "kazakhstan": "🇰🇿",
+    "hong kong": "🇭🇰",
+    "taiwan": "🇹🇼",
+}
+
+def get_country_flag(country_name):
+    if not country_name:
+        return "🌐"
+    return COUNTRY_FLAGS.get(country_name.strip().lower(), "🌐")
+# -------------------------------------------------------
+
 # ----------------- FLASK WEB SERVER & WEBHOOK ROUTE -----------------
 app = Flask(__name__)
 
@@ -403,15 +477,16 @@ def get_account_keyboard(user_id):
 def get_products_countries_keyboard(user_id):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
-    # Single layer (1 button per row)
+    # Single layer (1 button per row) with country flag
     markup = types.InlineKeyboardMarkup(row_width=1)
     if "Countries" in product_inventory and "items" in product_inventory["Countries"]:
         for country, data in product_inventory["Countries"]["items"].items():
             c_code = data.get("code", "")
             c_name = data.get("names", {}).get(lang_code, country)
+            flag = get_country_flag(country)
             zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in data.get("zip_files", []))
             total_stock = len(data.get("accounts", [])) + zip_stock_count
-            btn_text = f"🌐 {c_name} ({c_code}) [{total_stock}]"
+            btn_text = f"{flag} {c_name} ({c_code}) [{total_stock}]"
             markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"select_country_{country}"))
     markup.add(types.InlineKeyboardButton(t["main_menu"], callback_data="go_main_menu"))
     return markup
@@ -540,8 +615,9 @@ def handle_document_uploads(message):
         if country_name in product_inventory["Countries"]["items"]:
             temp_admin_data[f"zip_bytes_{user_id}"] = downloaded_file
             user_states[user_id] = "waiting_for_zip_2fa"
+            flag = get_country_flag(country_name)
             response_msg = (
-                f"✅ ZIP File uploaded successfully for {country_name}!\n\n"
+                f"✅ ZIP File uploaded successfully for {flag} {country_name}!\n\n"
                 f"🔐 Now, please send the Password / 2FA Code for this ZIP file so it can be verified and read properly:"
             )
             bot.send_message(message.chat.id, response_msg)
@@ -695,7 +771,8 @@ def handle_all_messages(message):
         if c_name not in product_inventory["Countries"]["items"]:
             temp_admin_data[user_id] = c_name
             user_states[user_id] = "waiting_for_country_code"
-            bot.send_message(message.chat.id, f"📱 Now enter country phone code for {c_name} (e.g., +880):")
+            flag = get_country_flag(c_name)
+            bot.send_message(message.chat.id, f"📱 Now enter country phone code for {flag} {c_name} (e.g., +880):")
         else:
             bot.send_message(message.chat.id, f"⚠️ Country {c_name} already exists.")
             user_states.pop(user_id, None)
@@ -713,7 +790,8 @@ def handle_all_messages(message):
                 "zip_files": []
             }
             save_inventory()
-            bot.send_message(message.chat.id, f"✅ Country {c_name} ({c_code}) added successfully!", reply_markup=get_admin_panel_keyboard(user_id))
+            flag = get_country_flag(c_name)
+            bot.send_message(message.chat.id, f"✅ Country {flag} {c_name} ({c_code}) added successfully!", reply_markup=get_admin_panel_keyboard(user_id))
         user_states.pop(user_id, None)
         return
 
@@ -726,7 +804,8 @@ def handle_all_messages(message):
             if country_name in product_inventory["Countries"]["items"]:
                 product_inventory["Countries"]["items"][country_name]["price"] = new_price
                 save_inventory()
-                bot.send_message(message.chat.id, f"✅ Price for {country_name} successfully updated to ${new_price:.2f}!", reply_markup=get_admin_panel_keyboard(user_id))
+                flag = get_country_flag(country_name)
+                bot.send_message(message.chat.id, f"✅ Price for {flag} {country_name} successfully updated to ${new_price:.2f}!", reply_markup=get_admin_panel_keyboard(user_id))
             else:
                 bot.send_message(message.chat.id, "❌ Country not found.")
         except ValueError:
@@ -746,7 +825,8 @@ def handle_all_messages(message):
                 proto_items[new_country]["names"]["en"] = new_country
                 proto_items[new_country]["names"]["zh"] = new_country
             save_inventory()
-            bot.send_message(message.chat.id, f"✅ Successfully renamed country {old_country} to {new_country}!", reply_markup=get_admin_panel_keyboard(user_id))
+            flag = get_country_flag(new_country)
+            bot.send_message(message.chat.id, f"✅ Successfully renamed country {old_country} to {flag} {new_country}!", reply_markup=get_admin_panel_keyboard(user_id))
         else:
             bot.send_message(message.chat.id, "❌ Country not found.")
         user_states.pop(user_id, None)
@@ -790,8 +870,9 @@ def handle_all_messages(message):
                             "extracted_files": valid_files
                         })
                         saved = save_inventory()
+                        flag = get_country_flag(country_name)
                         if saved:
-                            bot.send_message(message.chat.id, f"✅ Successfully added & saved ZIP stock for {country_name}!\n📁 Total valid files: {len(valid_files)}\n🔐 Password / 2FA: {tfa_code}", reply_markup=get_admin_panel_keyboard(user_id))
+                            bot.send_message(message.chat.id, f"✅ Successfully added & saved ZIP stock for {flag} {country_name}!\n📁 Total valid files: {len(valid_files)}\n🔐 Password / 2FA: {tfa_code}", reply_markup=get_admin_panel_keyboard(user_id))
                         else:
                             bot.send_message(message.chat.id, "⚠️ Stock added in memory but failed to save to Firebase! Check file size or Firebase permissions.", reply_markup=get_admin_panel_keyboard(user_id))
             except Exception as e:
@@ -888,6 +969,7 @@ def handle_all_messages(message):
 def process_product_purchase(chat_id, user_id, item_key, qty):
     lang_code = get_lang(user_id)
     t = LANG[lang_code]
+    flag = get_country_flag(item_key)
     if "Countries" in product_inventory and item_key in product_inventory["Countries"]["items"]:
         c_data = product_inventory["Countries"]["items"][item_key]
         price_per_unit = c_data.get("price", 1.00)
@@ -954,7 +1036,7 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                     chat_id,
                     document=single_zip_buffer,
                     visible_file_name=f"{item_key}_{file_short_name}.zip",
-                    caption=f"{t['purchase_success']}\n\n🌍 Country: {item_key}\n📦 File: {file_short_name}\n🔐 2FA & ZIP Password: {tfa_code}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                    caption=f"{t['purchase_success']}\n\n{flag} Country: {item_key}\n📦 File: {file_short_name}\n🔐 2FA & ZIP Password: {tfa_code}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
                 )
             elif len(accounts_list) > 0:
                 purchased_item = accounts_list.pop(0)
@@ -966,7 +1048,7 @@ def process_product_purchase(chat_id, user_id, item_key, qty):
                 user_purchases.setdefault(user_id, []).append({"text": purchase_text, "timestamp": time.time()})
                 delivered_count += 1
 
-                success_text = f"{t['purchase_success']}\n\n🌍 Country: {item_key}\n📱 Telegram Number: {acc_num}\n🔐 2FA Code: {acc_2fa}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
+                success_text = f"{t['purchase_success']}\n\n{flag} Country: {item_key}\n📱 Telegram Number: {acc_num}\n🔐 2FA Code: {acc_2fa}\n💵 Paid: ${price_per_unit:.2f}\n\n{t['balance_text']} ${user_balances[user_id]:.2f}"
                 bot.send_message(chat_id, success_text)
         except Exception as e:
             print(f"Error in delivering product: {e}")
@@ -1278,6 +1360,7 @@ def handle_inline_clicks(call):
         c_data = product_inventory["Countries"]["items"].get(country, {})
         price = c_data.get("price", 1.00)
         c_code = c_data.get("code", "")
+        flag = get_country_flag(country)
         zip_stock_count = sum(len(zf.get("extracted_files", [])) for zf in c_data.get("zip_files", []))
         stock_count = len(c_data.get("accounts", [])) + zip_stock_count
         markup = types.InlineKeyboardMarkup(row_width=1)
@@ -1286,7 +1369,7 @@ def handle_inline_clicks(call):
             types.InlineKeyboardButton(t["back"], callback_data="back_to_products_menu")
         )
         try:
-            country_detail_text = f"🌐 Country: {country} ({c_code})\n\n💰 Price: ${price:.2f}\n📦 Available {t['stock']}: {stock_count} items\n\nClick below to proceed to quantity selection:"
+            country_detail_text = f"{flag} Country: {country} ({c_code})\n\n💰 Price: ${price:.2f}\n📦 Available {t['stock']}: {stock_count} items\n\nClick below to proceed to quantity selection:"
             bot.edit_message_text(country_detail_text, call.message.chat.id, call.message.message_id, reply_markup=markup)
         except Exception:
             pass
@@ -1294,9 +1377,10 @@ def handle_inline_clicks(call):
 
     elif call.data.startswith("buy_country_"):
         country = call.data.replace("buy_country_", "")
+        flag = get_country_flag(country)
         bot.answer_callback_query(call.id, country)
         try:
-            proto_qty_text = f"🔢 Select Quantity for {country}:\n\nChoose how many items you want to buy:"
+            proto_qty_text = f"🔢 Select Quantity for {flag} {country}:\n\nChoose how many items you want to buy:"
             bot.edit_message_text(proto_qty_text, call.message.chat.id, call.message.message_id, reply_markup=get_quantity_keyboard(country, user_id))
         except Exception:
             pass
@@ -1331,10 +1415,11 @@ def handle_inline_clicks(call):
         proto_items = product_inventory.get("Countries", {}).get("items", {})
         if proto_items:
             for c_name in proto_items.keys():
+                flag = get_country_flag(c_name)
                 markup.add(
-                    types.InlineKeyboardButton(f"💵 Edit Price: {c_name}", callback_data=f"admin_edit_price_{c_name}"),
-                    types.InlineKeyboardButton(f"✏️ Rename: {c_name}", callback_data=f"admin_rename_country_{c_name}"),
-                    types.InlineKeyboardButton(f"❌ Delete: {c_name}", callback_data=f"admin_delete_country_{c_name}")
+                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {c_name}", callback_data=f"admin_edit_price_{c_name}"),
+                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {c_name}", callback_data=f"admin_rename_country_{c_name}"),
+                    types.InlineKeyboardButton(f"❌ Delete: {flag} {c_name}", callback_data=f"admin_delete_country_{c_name}")
                 )
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
         bot.answer_callback_query(call.id, "Countries Edit Menu")
@@ -1350,9 +1435,10 @@ def handle_inline_clicks(call):
         country_name = call.data.replace("admin_edit_price_", "")
         user_states[user_id] = f"waiting_for_edit_price_{country_name}"
         current_price = product_inventory["Countries"]["items"].get(country_name, {}).get("price", 1.00)
+        flag = get_country_flag(country_name)
         bot.answer_callback_query(call.id, f"Edit Price {country_name}")
         try:
-            bot.edit_message_text(f"💵 Edit Price for {country_name}\n\nCurrent Price: ${current_price:.2f}\n\nPlease send new price (e.g., 1.50 or 2):", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(f"💵 Edit Price for {flag} {country_name}\n\nCurrent Price: ${current_price:.2f}\n\nPlease send new price (e.g., 1.50 or 2):", call.message.chat.id, call.message.message_id)
         except Exception:
             pass
         return
@@ -1362,9 +1448,10 @@ def handle_inline_clicks(call):
             return
         country_name = call.data.replace("admin_rename_country_", "")
         user_states[user_id] = f"waiting_for_rename_country_{country_name}"
+        flag = get_country_flag(country_name)
         bot.answer_callback_query(call.id, f"Rename {country_name}")
         try:
-            bot.edit_message_text(f"✏️ Enter new name for country {country_name}:", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(f"✏️ Enter new name for country {flag} {country_name}:", call.message.chat.id, call.message.message_id)
         except Exception:
             pass
         return
@@ -1380,10 +1467,11 @@ def handle_inline_clicks(call):
             bot.answer_callback_query(call.id, f"Deleted {country_name}")
             markup = types.InlineKeyboardMarkup(row_width=1)
             for c in proto_items.keys():
+                flag = get_country_flag(c)
                 markup.add(
-                    types.InlineKeyboardButton(f"💵 Edit Price: {c}", callback_data=f"admin_edit_price_{c}"),
-                    types.InlineKeyboardButton(f"✏️ Rename: {c}", callback_data=f"admin_rename_country_{c}"),
-                    types.InlineKeyboardButton(f"❌ Delete: {c}", callback_data=f"admin_delete_country_{c}")
+                    types.InlineKeyboardButton(f"💵 Edit Price: {flag} {c}", callback_data=f"admin_edit_price_{c}"),
+                    types.InlineKeyboardButton(f"✏️ Rename: {flag} {c}", callback_data=f"admin_rename_country_{c}"),
+                    types.InlineKeyboardButton(f"❌ Delete: {flag} {c}", callback_data=f"admin_delete_country_{c}")
                 )
             markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
             try:
@@ -1399,7 +1487,8 @@ def handle_inline_clicks(call):
             return
         markup = types.InlineKeyboardMarkup(row_width=1)
         for c in product_inventory["Countries"]["items"].keys():
-            markup.add(types.InlineKeyboardButton(f"🗂️ Country ({c})", callback_data=f"select_zip_country_{c}"))
+            flag = get_country_flag(c)
+            markup.add(types.InlineKeyboardButton(f"{flag} Country ({c})", callback_data=f"select_zip_country_{c}"))
         markup.add(types.InlineKeyboardButton(t["back"], callback_data="admin_back"))
         bot.answer_callback_query(call.id, "ZIP Menu")
         try:
@@ -1414,9 +1503,10 @@ def handle_inline_clicks(call):
         country_name = call.data.replace("select_zip_country_", "")
         temp_admin_data[user_id] = country_name
         user_states[user_id] = "waiting_for_zip_file"
+        flag = get_country_flag(country_name)
         bot.answer_callback_query(call.id, country_name)
         try:
-            bot.edit_message_text(f"📁 Please send the .zip file for {country_name}:", call.message.chat.id, call.message.message_id)
+            bot.edit_message_text(f"📁 Please send the .zip file for {flag} {country_name}:", call.message.chat.id, call.message.message_id)
         except Exception:
             pass
         return
