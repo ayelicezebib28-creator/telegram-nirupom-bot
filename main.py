@@ -11,7 +11,7 @@ import requests
 from flask import Flask, request
 
 # Token Setup
-TOKEN = "9026616821:AAFWM050T51iKeXudZasA36IEMk5CrtXZB0"
+TOKEN = "9026616821:AAHugks-ZNlpQ0c-_mniTzqIItiAatMdJFY"
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
 # Firebase Database URL
