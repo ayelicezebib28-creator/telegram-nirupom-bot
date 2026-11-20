@@ -29,6 +29,7 @@ bot = telebot.TeleBot(TOKEN, threaded=False)
 support_admin_username = "@TG_Logs01"
 ADMIN_IDS = [9038799543]
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "N1010")
+MIN_DEPOSIT = 2.00
 
 # In-memory Database & State Management
 user_amounts = {}
@@ -451,13 +452,13 @@ LANG = {
         "insufficient_stock": "❌ Insufficient stock! Available stock: {stock} items.",
         "insufficient_balance": "❌ Insufficient balance!\nRequired: ${required:.2f}\nYour Balance: ${balance:.2f}\nPlease deposit first.",
         "balance_text": "Remaining Balance:",
-        "deposit_select_amt": "Enter custom deposit amount (USDT, Min $5):",
-        "min_network": "❌ Minimum deposit for this network is $5.00!",
+        "deposit_select_amt": "Enter custom deposit amount (USDT, Min $2):",
+        "min_network": "❌ Minimum deposit for this network is $2.00!",
         "min_deposit_err": "❌ Minimum deposit amount is ${min_limit:.2f}. Please enter again:",
-        "invalid_amount": "❌ Invalid amount. Please enter a valid number (e.g., 5 or 10):",
+        "invalid_amount": "❌ Invalid amount. Please enter a valid number (e.g., 2 or 10):",
         "selected_amount_pay": "💰 Selected Amount: ${amount:.2f}\n\nPlease select your preferred payment method:",
-        "pay_trc20": "💵 USDT (TRC20) (Min $5)",
-        "pay_bep20": "💵 USDT (BEP20) (Min $5)",
+        "pay_trc20": "💵 USDT (TRC20) (Min $2)",
+        "pay_bep20": "💵 USDT (BEP20) (Min $2)",
         "send_txid_btn": "📤 Send Order Id / TxID",
         "txid_prompt": "📤 Please send your payment Transaction ID (TxID) or Proof:\n\nOrder ID: {order_id}",
         "proof_sent": "📤 Your payment proof / Order ID has been sent to the admin successfully. Please wait for verification.",
@@ -517,13 +518,13 @@ LANG = {
         "insufficient_stock": "❌ 库存不足！可用库存：{stock} 件。",
         "insufficient_balance": "❌ 余额不足！\n需要：${required:.2f}\n当前余额：${balance:.2f}\n请先进行充值。",
         "balance_text": "剩余余额：",
-        "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $5)：",
-        "min_network": "❌ 该网络最低充值金额为 $5.00！",
+        "deposit_select_amt": "请输入自定义充值金额 (USDT，最低 $2)：",
+        "min_network": "❌ 该网络最低充值金额为 $2.00！",
         "min_deposit_err": "❌ 最低充值金额为 ${min_limit:.2f}，请重新输入：",
-        "invalid_amount": "❌ 金额无效，请输入有效的数字（例如：5 或 10）：",
+        "invalid_amount": "❌ 金额无效，请输入有效的数字（例如：2 或 10）：",
         "selected_amount_pay": "💰 已选金额：${amount:.2f}\n\n请选择您的首选付款方式：",
-        "pay_trc20": "💵 USDT (TRC20) (最低 $5)",
-        "pay_bep20": "💵 USDT (BEP20) (最低 $5)",
+        "pay_trc20": "💵 USDT (TRC20) (最低 $2)",
+        "pay_bep20": "💵 USDT (BEP20) (最低 $2)",
         "send_txid_btn": "📤 发送订单号 / 交易单号 (TxID)",
         "txid_prompt": "📤 请发送您的付款交易单号 (TxID) 或付款截图凭证：\n\n订单号：{order_id}",
         "proof_sent": "📤 您的付款凭证 / 订单号已成功发送给管理员，请等待验证。",
@@ -580,6 +581,7 @@ def get_select_amount_keyboard(user_id):
     t = LANG[get_lang(user_id)]
     markup = types.InlineKeyboardMarkup(row_width=3)
     markup.add(
+        types.InlineKeyboardButton("2 USDT", callback_data="amt_2"),
         types.InlineKeyboardButton("5 USDT", callback_data="amt_5"),
         types.InlineKeyboardButton("10 USDT", callback_data="amt_10"),
         types.InlineKeyboardButton("20 USDT", callback_data="amt_20"),
@@ -1058,7 +1060,7 @@ def handle_all_messages(message):
             save_used_txids()
 
         user_states.pop(user_id, None)
-        dep_amt = user_amounts.get(user_id, 5.00)
+        dep_amt = user_amounts.get(user_id, MIN_DEPOSIT)
         dep_id = f"dep_{user_id}_{int(time.time())}"
         dep_data = {
             "user_id": user_id,
@@ -1116,7 +1118,7 @@ def handle_all_messages(message):
     if state == "waiting_for_custom_amount":
         try:
             custom_amount = float(text.strip())
-            min_limit = 5.00
+            min_limit = MIN_DEPOSIT
             if custom_amount < min_limit:
                 bot.send_message(message.chat.id, t["min_deposit_err"].format(min_limit=min_limit))
                 return
@@ -1740,8 +1742,8 @@ def handle_inline_clicks(call):
         return
 
     elif call.data in ["order_usdt_trc20", "order_usdt_bep20"]:
-        current_amount = user_amounts.get(user_id, 5.00)
-        if current_amount < 5.0:
+        current_amount = user_amounts.get(user_id, MIN_DEPOSIT)
+        if current_amount < MIN_DEPOSIT:
             bot.answer_callback_query(call.id, t["min_network"], show_alert=True)
             return
         order_id = f"ORD-{random.randint(100000, 999999)}"
